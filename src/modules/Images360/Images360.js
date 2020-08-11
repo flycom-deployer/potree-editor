@@ -194,15 +194,16 @@ export class Images360 extends EventDispatcher{
 		let pos = viewer.scene.view.position;
 		let target = viewer.scene.view.getPivot();
 		let dir = target.clone().sub(pos).normalize();
-		let move = dir.multiplyScalar(10);
+		let move = dir.multiplyScalar(30);
 		let newCamPos = target.clone().sub(move);
 
 		viewer.orbitControls.doubleClockZoomEnabled = true;
 		viewer.setControls(previousView.controls);
 
 		viewer.scene.view.setView(
-			previousView.position,
-			previousView.target,
+			// previousView.position,
+			// previousView.target,
+			newCamPos, target,
 			timeout
 		);
 
@@ -324,6 +325,7 @@ export class Images360Loader{
 
 	static createSceneNodes(images360, transform){
 
+		let index = 1;
 		for(let image360 of images360.images){
 			let {longitude, latitude, altitude} = image360;
 			let xy = transform.forward([longitude, latitude]);
@@ -346,9 +348,20 @@ export class Images360Loader{
 				);
 			}
 
+/*
+			var spriteText = new TextSprite(index);
+			spriteText.setFontSize(46);
+			spriteText.setTextColor({r: 0, g: 0, b: 0, a: 1.0});
+			spriteText.setBorderColor({r: 0, g: 0, b: 0, a: 0.0});
+			spriteText.setBackgroundColor({r: 0, g: 0, b: 0, a: 0.0});
+
+			mesh.add( spriteText );
+*/
 			images360.node.add(mesh);
 
 			image360.mesh = mesh;
+
+			index += 1;
 		}
 	}
 
