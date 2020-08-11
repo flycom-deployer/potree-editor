@@ -2,7 +2,7 @@
 import { EventDispatcher } from "../../EventDispatcher.js";
 import {TextSprite} from "../../TextSprite.js";
 
-let sg = new THREE.SphereGeometry(1, 8, 8);
+let sg = new THREE.SphereGeometry(1, 20, 20);
 let sgHigh = new THREE.SphereGeometry(1, 128, 128);
 
 let sm = new THREE.MeshBasicMaterial({side: THREE.BackSide});
@@ -17,6 +17,8 @@ let previousView = {
 	position: null,
 	target: null,
 };
+
+const timeout = 0;
 
 class Image360{
 
@@ -112,7 +114,7 @@ export class Images360 extends EventDispatcher{
 
 		setTimeout(() => {
 			this.focus(image360);
-		}, 50);
+		}, timeout);
 	}
 
 	focus(image360){
@@ -163,7 +165,7 @@ export class Images360 extends EventDispatcher{
 		viewer.scene.view.setView(
 			newCamPos,
 			target,
-			500
+			timeout
 		);
 
 		this.focusedImage = image360;
@@ -201,7 +203,7 @@ export class Images360 extends EventDispatcher{
 		viewer.scene.view.setView(
 			previousView.position,
 			previousView.target,
-			500
+			timeout
 		);
 
 
@@ -253,7 +255,8 @@ export class Images360 extends EventDispatcher{
 		let {viewer} = this;
 
 		if(currentlyHovered){
-			currentlyHovered.material = smYellow;
+			// currentlyHovered.material = smYellow;
+			currentlyHovered.material = sm;
 			currentlyHovered = null;
 		}
 
@@ -325,7 +328,8 @@ export class Images360Loader{
 			let {longitude, latitude, altitude} = image360;
 			let xy = transform.forward([longitude, latitude]);
 
-			let mesh = new THREE.Mesh(sg, smYellow);
+			// let mesh = new THREE.Mesh(sg, smYellow);
+			let mesh = new THREE.Mesh(sg, sm);
 			mesh.position.set(...xy, altitude);
 			mesh.scale.set(1, 1, 1);
 			mesh.material.transparent = true;
