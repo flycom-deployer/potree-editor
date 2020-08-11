@@ -6,6 +6,7 @@ let sg = new THREE.SphereGeometry(1, 8, 8);
 let sgHigh = new THREE.SphereGeometry(1, 128, 128);
 
 let sm = new THREE.MeshBasicMaterial({side: THREE.BackSide});
+let smYellow = new THREE.MeshBasicMaterial({side: THREE.BackSide, color: 0xffff00});
 let smHovered = new THREE.MeshBasicMaterial({side: THREE.BackSide, color: 0xff0000});
 
 let raycaster = new THREE.Raycaster();
@@ -53,9 +54,11 @@ export class Images360 extends EventDispatcher{
 
 		this.focusedImage = null;
 
-		let elUnfocus = document.createElement("input");
-		elUnfocus.type = "button";
-		elUnfocus.value = "unfocus";
+		// let elUnfocus = document.createElement("input");
+		// elUnfocus.type = "button";
+		let elUnfocus = document.createElement("button");
+		// elUnfocus.value = "unfocus";
+		elUnfocus.innerHTML = "&larr;";
 		elUnfocus.style.position = "absolute";
 		elUnfocus.style.right = "10px";
 		elUnfocus.style.bottom = "10px";
@@ -78,7 +81,7 @@ export class Images360 extends EventDispatcher{
 				this.focus(currentlyHovered.image360);
 			}
 		});
-		
+
 	};
 
 	set visible(visible){
@@ -100,6 +103,16 @@ export class Images360 extends EventDispatcher{
 
 	get visible(){
 		return this._visible;
+	}
+
+	focusExtern(image360) {
+		if(this.focusedImage !== null){
+			this.unfocus();
+		}
+
+		setTimeout(() => {
+			this.focus(image360);
+		}, 50);
 	}
 
 	focus(image360){
@@ -148,7 +161,7 @@ export class Images360 extends EventDispatcher{
 		let newCamPos = target.clone().sub(move);
 
 		viewer.scene.view.setView(
-			newCamPos, 
+			newCamPos,
 			target,
 			500
 		);
@@ -186,7 +199,7 @@ export class Images360 extends EventDispatcher{
 		viewer.setControls(previousView.controls);
 
 		viewer.scene.view.setView(
-			previousView.position, 
+			previousView.position,
 			previousView.target,
 			500
 		);
@@ -240,7 +253,7 @@ export class Images360 extends EventDispatcher{
 		let {viewer} = this;
 
 		if(currentlyHovered){
-			currentlyHovered.material = sm;
+			currentlyHovered.material = smYellow;
 			currentlyHovered = null;
 		}
 
@@ -262,7 +275,7 @@ export class Images360Loader{
 				forward: a => a,
 			};
 		}
-		
+
 		let response = await fetch(`${url}/coordinates.txt`);
 		let text = await response.text();
 
@@ -312,7 +325,7 @@ export class Images360Loader{
 			let {longitude, latitude, altitude} = image360;
 			let xy = transform.forward([longitude, latitude]);
 
-			let mesh = new THREE.Mesh(sg, sm);
+			let mesh = new THREE.Mesh(sg, smYellow);
 			mesh.position.set(...xy, altitude);
 			mesh.scale.set(1, 1, 1);
 			mesh.material.transparent = true;
@@ -335,8 +348,6 @@ export class Images360Loader{
 		}
 	}
 
-	
+
 
 };
-
-
