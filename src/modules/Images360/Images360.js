@@ -1,4 +1,3 @@
-
 import { EventDispatcher } from "../../EventDispatcher.js";
 import {TextSprite} from "../../TextSprite.js";
 
@@ -20,7 +19,7 @@ let previousView = {
 
 const timeout = 0;
 
-class Image360{
+export class Image360{
 
 	constructor(file, time, longitude, latitude, altitude, course, pitch, roll){
 		this.file = file;
@@ -56,10 +55,7 @@ export class Images360 extends EventDispatcher{
 
 		this.focusedImage = null;
 
-		// let elUnfocus = document.createElement("input");
-		// elUnfocus.type = "button";
 		let elUnfocus = document.createElement("button");
-		// elUnfocus.value = "unfocus";
 		elUnfocus.innerHTML = "&larr;";
 		elUnfocus.style.position = "absolute";
 		elUnfocus.style.right = "10px";
@@ -93,7 +89,6 @@ export class Images360 extends EventDispatcher{
 
 		for(const image of this.images){
 			image.mesh.visible = visible;
-			// image.line.visible = visible;
 		}
 
 		this._visible = visible;
@@ -191,22 +186,14 @@ export class Images360 extends EventDispatcher{
 		this.sphere.material.needsUpdate = true;
 		this.sphere.visible = false;
 
-		let pos = viewer.scene.view.position;
-		let target = viewer.scene.view.getPivot();
-		let dir = target.clone().sub(pos).normalize();
-		let move = dir.multiplyScalar(30);
-		let newCamPos = target.clone().sub(move);
-
 		viewer.orbitControls.doubleClockZoomEnabled = true;
 		viewer.setControls(previousView.controls);
 
 		viewer.scene.view.setView(
-			// previousView.position,
-			// previousView.target,
-			newCamPos, target,
+			previousView.position,
+			previousView.target,
 			timeout
 		);
-
 
 		this.focusedImage = null;
 
@@ -232,27 +219,19 @@ export class Images360 extends EventDispatcher{
 
 		let ray = Potree.Utils.mouseToRay(mouse, camera, domElement.clientWidth, domElement.clientHeight);
 
-		// let tStart = performance.now();
 		raycaster.ray.copy(ray);
 		let intersections = raycaster.intersectObjects(this.node.children);
 
 		if(intersections.length === 0){
-			// label.visible = false;
-
 			return;
 		}
 
 		let intersection = intersections[0];
 		currentlyHovered = intersection.object;
 		currentlyHovered.material = smHovered;
-
-		//label.visible = true;
-		//label.setText(currentlyHovered.image360.file);
-		//currentlyHovered.getWorldPosition(label.position);
 	}
 
 	update(){
-
 		let {viewer} = this;
 
 		if(currentlyHovered){
@@ -324,8 +303,6 @@ export class Images360Loader{
 	}
 
 	static createSceneNodes(images360, transform){
-
-		let index = 1;
 		for(let image360 of images360.images){
 			let {longitude, latitude, altitude} = image360;
 			let xy = transform.forward([longitude, latitude]);
@@ -348,20 +325,9 @@ export class Images360Loader{
 				);
 			}
 
-/*
-			var spriteText = new TextSprite(index);
-			spriteText.setFontSize(46);
-			spriteText.setTextColor({r: 0, g: 0, b: 0, a: 1.0});
-			spriteText.setBorderColor({r: 0, g: 0, b: 0, a: 0.0});
-			spriteText.setBackgroundColor({r: 0, g: 0, b: 0, a: 0.0});
-
-			mesh.add( spriteText );
-*/
 			images360.node.add(mesh);
 
 			image360.mesh = mesh;
-
-			index += 1;
 		}
 	}
 
