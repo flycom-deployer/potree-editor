@@ -166,6 +166,12 @@ export class Images360 extends EventDispatcher{
 		this.focusedImage = image360;
 
 		this.elUnfocus.style.display = "";
+
+		viewer.scene.dispatchEvent({
+			type: '360_image_focus',
+			scene: viewer.scene,
+			image: this.focusedImage,
+		});
 	}
 
 	unfocus(){
@@ -194,6 +200,12 @@ export class Images360 extends EventDispatcher{
 			previousView.target,
 			timeout
 		);
+
+		viewer.scene.dispatchEvent({
+			type: '360_image_unfocus',
+			scene: viewer.scene,
+			image: this.focusedImage,
+		});
 
 		this.focusedImage = null;
 
