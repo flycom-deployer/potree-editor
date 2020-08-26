@@ -5,7 +5,6 @@ let sg = new THREE.SphereGeometry(1, 20, 20);
 let sgHigh = new THREE.SphereGeometry(1, 128, 128);
 
 let sm = new THREE.MeshBasicMaterial({side: THREE.BackSide});
-let smYellow = new THREE.MeshBasicMaterial({side: THREE.BackSide, color: 0xffff00});
 let smHovered = new THREE.MeshBasicMaterial({side: THREE.BackSide, color: 0xff0000});
 
 let raycaster = new THREE.Raycaster();
@@ -51,23 +50,75 @@ export class Images360 extends EventDispatcher{
 		this.sphere.scale.set(1000, 1000, 1000);
 		this.node.add(this.sphere);
 		this._visible = true;
-		// this.node.add(label);
 
 		this.focusedImage = null;
 
+		this.nextPrevious = false;
+		this.nextPreviousDirection;
+		this.oldFov = 0;
+
+		this.zoomOn = e => {
+			const minFov = 20.0;
+			const maxFov = 100.0
+
+			let delta = -Math.sign(e.delta);
+			let fov = this.viewer.getFOV() + delta;
+
+			if (fov > maxFov) {
+				fov = maxFov;
+			}
+
+			if (fov < minFov) {
+				fov = minFov;
+			}
+
+			this.viewer.setFOV(fov);
+		};
+
 		let elUnfocus = document.createElement("button");
-		elUnfocus.innerHTML = "&larr;";
+		elUnfocus.innerHTML = "x";
 		elUnfocus.style.position = "absolute";
 		elUnfocus.style.right = "10px";
-		elUnfocus.style.bottom = "10px";
+		elUnfocus.style.bottom = "20px";
 		elUnfocus.style.zIndex = "10000";
-		elUnfocus.style.fontSize = "2em";
-		elUnfocus.addEventListener("click", () => this.unfocus());
+		elUnfocus.style.fontSize = "1.5em";
+		elUnfocus.style.cursor = "pointer";
+		elUnfocus.style.paddingBottom = "2px";
+		elUnfocus.addEventListener("click", () => this.exit());
 		this.elUnfocus = elUnfocus;
+
+		let elPrev = document.createElement("button");
+		elPrev.innerHTML = "&darr;";
+		elPrev.style.position = "absolute";
+		elPrev.style.right = "10px";
+		elPrev.style.bottom = "60px";
+		elPrev.style.zIndex = "10000";
+		elPrev.style.fontSize = "1.5em";
+		elPrev.style.cursor = "pointer";
+		elPrev.style.paddingBottom = "2px";
+		elPrev.addEventListener("click", () => this.focusNearestImage(false));
+		this.elPrev = elPrev;
+
+		let elNext = document.createElement("button");
+		elNext.innerHTML = "&uarr;";
+		elNext.style.position = "absolute";
+		elNext.style.right = "10px";
+		elNext.style.bottom = "100px";
+		elNext.style.zIndex = "10000";
+		elNext.style.fontSize = "1.5em";
+		elNext.style.cursor = "pointer";
+		elNext.style.paddingBottom = "2px";
+		elNext.addEventListener("click", () => this.focusNearestImage(true));
+		this.elNext = elNext;
 
 		this.domRoot = viewer.renderer.domElement.parentElement;
 		this.domRoot.appendChild(elUnfocus);
+		this.domRoot.appendChild(elNext);
+		this.domRoot.appendChild(elPrev);
+
 		this.elUnfocus.style.display = "none";
+		this.elNext.style.display = "none";
+		this.elPrev.style.display = "none";
 
 		viewer.addEventListener("update", () => {
 			this.update(viewer);
@@ -79,7 +130,6 @@ export class Images360 extends EventDispatcher{
 				this.focus(currentlyHovered.image360);
 			}
 		});
-
 	};
 
 	set visible(visible){
@@ -117,11 +167,13 @@ export class Images360 extends EventDispatcher{
 			this.unfocus();
 		}
 
-		previousView = {
-			controls: this.viewer.controls,
-			position: this.viewer.scene.view.position.clone(),
-			target: viewer.scene.view.getPivot(),
-		};
+		if (!this.nextPrevious) {
+			previousView = {
+				controls: this.viewer.controls,
+				position: this.viewer.scene.view.position.clone(),
+				target: viewer.scene.view.getPivot(),
+			};
+		}
 
 		this.viewer.setControls(this.viewer.orbitControls);
 		this.viewer.orbitControls.doubleClockZoomEnabled = false;
@@ -153,7 +205,16 @@ export class Images360 extends EventDispatcher{
 		this.sphere.position.set(...image360.position);
 
 		let target = new THREE.Vector3(...image360.position);
-		let dir = target.clone().sub(viewer.scene.view.position).normalize();
+
+		let dir;
+
+		if (this.nextPrevious) {
+			dir = this.nextPreviousDirection.clone().normalize();
+		} else {
+			dir = target.clone().sub(viewer.scene.view.position).normalize();
+			dir.z = 0;
+		}
+
 		let move = dir.multiplyScalar(0.000001);
 		let newCamPos = target.clone().sub(move);
 
@@ -166,27 +227,29 @@ export class Images360 extends EventDispatcher{
 		this.focusedImage = image360;
 
 		this.elUnfocus.style.display = "";
+		this.elNext.style.display = "";
+		this.elPrev.style.display = "";
 
 		viewer.scene.dispatchEvent({
 			type: '360_image_focus',
 			scene: viewer.scene,
 			image: this.focusedImage,
 		});
+
+		this.oldFov = this.viewer.getFOV();
+		this.addEventListener('mousewheel', this.zoomOn);
 	}
 
 	unfocus(){
-		this.selectingEnabled = true;
+		this.removeEventListener('mousewheel', this.zoomOn);
 
-		for(let image of this.images){
-			image.mesh.visible = true;
-		}
+		this.selectingEnabled = true;
 
 		let image = this.focusedImage;
 
 		if(image === null){
 			return;
 		}
-
 
 		this.sphere.material.map = null;
 		this.sphere.material.needsUpdate = true;
@@ -195,11 +258,13 @@ export class Images360 extends EventDispatcher{
 		viewer.orbitControls.doubleClockZoomEnabled = true;
 		viewer.setControls(previousView.controls);
 
-		viewer.scene.view.setView(
-			previousView.position,
-			previousView.target,
-			timeout
-		);
+		if (!this.nextPrevious) {
+			viewer.scene.view.setView(
+				previousView.position,
+				previousView.target,
+				timeout
+			);
+		}
 
 		viewer.scene.dispatchEvent({
 			type: '360_image_unfocus',
@@ -209,11 +274,80 @@ export class Images360 extends EventDispatcher{
 
 		this.focusedImage = null;
 
-		this.elUnfocus.style.display = "none";
+		if (!this.nextPrevious) {
+			for (let image of this.images) {
+				image.mesh.visible = true;
+			}
+
+			this.elUnfocus.style.display = "none";
+			this.elNext.style.display = "none";
+			this.elPrev.style.display = "none";
+
+			this.viewer.setFOV(this.oldFov);
+		}
+	}
+
+	focusNearestImage(forward) {
+		this.nextPrevious = true;
+		const nearestImage = this.getNearestImage(forward);
+
+		if (nearestImage) {
+			this.focusExtern(nearestImage);
+		}
+	}
+
+	distance(point1, point2) {
+		return Math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2);
+	}
+
+	getNearestImage(forward) {
+		const distance = 1;
+
+		const position = this.viewer.scene.view.position.clone();
+		const target = this.viewer.scene.view.getPivot();
+		let dir = target.clone().sub(position).normalize();
+
+		this.nextPreviousDirection = dir.clone();
+
+		if (!forward) {
+			dir.x = -dir.x;
+			dir.y = -dir.y;
+		}
+
+		position.add( dir.multiplyScalar(distance) );
+
+		let minDistance = -1;
+		let minImage;
+
+		for(let image of this.images){
+			const imagePosition =  new THREE.Vector3(...image.position);
+			let imageDirection = imagePosition.clone().sub(position).normalize();
+
+			const distance = this.distance(image.position, [position.x, position.y]);
+
+			let direction = dir.clone();
+			direction.z = 0;
+			imageDirection.z = 0;
+
+			const angle = imageDirection.angleTo(direction);
+
+			if ((this.focusedImage !== image) && (minDistance === -1 || distance < minDistance) && angle < Math.PI/2) {
+				minDistance = distance;
+				minImage = image;
+			}
+		}
+
+		return minImage;
+	}
+
+	exit(forward) {
+		this.nextPrevious = false;
+		this.nextPreviousDirection = null;
+
+		this.unfocus();
 	}
 
 	load(image360){
-
 		return new Promise(resolve => {
 			let texture = new THREE.TextureLoader().load(image360.file, resolve);
 			texture.wrapS = THREE.RepeatWrapping;
@@ -247,7 +381,6 @@ export class Images360 extends EventDispatcher{
 		let {viewer} = this;
 
 		if(currentlyHovered){
-			// currentlyHovered.material = smYellow;
 			currentlyHovered.material = sm;
 			currentlyHovered = null;
 		}
@@ -319,7 +452,6 @@ export class Images360Loader{
 			let {longitude, latitude, altitude} = image360;
 			let xy = transform.forward([longitude, latitude]);
 
-			// let mesh = new THREE.Mesh(sg, smYellow);
 			let mesh = new THREE.Mesh(sg, sm);
 			mesh.position.set(...xy, altitude);
 			mesh.scale.set(1, 1, 1);
@@ -342,7 +474,4 @@ export class Images360Loader{
 			image360.mesh = mesh;
 		}
 	}
-
-
-
 };
