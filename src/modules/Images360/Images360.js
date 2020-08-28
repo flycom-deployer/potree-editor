@@ -36,20 +36,15 @@ export class Images360 extends EventDispatcher{
 		super();
 
 		this.viewer = viewer;
-
 		this.selectingEnabled = true;
-
 		this.images = [];
 		this.node = new THREE.Object3D();
-
 		this.sphere = new THREE.Mesh(sgHigh, sm);
 		this.sphere.visible = false;
 		this.sphere.scale.set(1000, 1000, 1000);
 		this.node.add(this.sphere);
 		this._visible = true;
-
 		this.focusedImage = null;
-
 		this.nextPrevious = false;
 		this.nextPreviousDirection;
 		this.oldFov = 0;
