@@ -37,21 +37,21 @@ export class Images360 extends EventDispatcher{
 
 		this.viewer = viewer;
 		this.selectingEnabled = true;
-		
+
 		this.images = [];
 		this.node = new THREE.Object3D();
 		this.sphere = new THREE.Mesh(sgHigh, sm);
 		this.sphere.visible = false;
 		this.sphere.scale.set(1000, 1000, 1000);
 		this.node.add(this.sphere);
-		
+
 		this._visible = true;
-		
+
 		this.focusedImage = null;
-		this.nextPrevious = false;
 		this.nextPreviousDirection;
 		this.oldFov = 0;
 		this.oldSpeed = 0;
+		this.oldEdlOpacity = 0;
 
 		this.zoomOn = e => {
 			const minFov = 20.0;
@@ -176,21 +176,12 @@ export class Images360 extends EventDispatcher{
 	}
 
 	focusExtern(image360) {
-		if(this.focusedImage !== null){
-			this.unfocus();
-		}
-
-		setTimeout(() => {
-			this.focus(image360);
-		}, timeout);
+		this.nextPreviousDirection = null;
+		this.focus(image360);
 	}
 
 	focus(image360){
-		if (!this.nextPrevious) {
-			if(this.focusedImage !== null){
-				this.unfocus();
-			}
-
+		if (this.focusedImage === null) {
 			// save old fov
 			if (!this.oldFov) {
 				this.oldFov = this.viewer.getFOV();
@@ -199,6 +190,11 @@ export class Images360 extends EventDispatcher{
 			// save old speed
 			if (!this.oldSpeed) {
 				this.oldSpeed = this.viewer.getMoveSpeed();
+			}
+
+			// save old opacity
+			if (!this.oldEdlOpacity) {
+				this.oldEdlOpacity = this.viewer.getEDLOpacity();
 			}
 
 			this.addEventListener('mousewheel', this.zoomOn);
@@ -242,13 +238,28 @@ export class Images360 extends EventDispatcher{
 			let target = new THREE.Vector3(...image360.position);
 
 			let dir;
+			let optionalTarget;
 
 			// calculate direction
-			if (this.nextPrevious) {
+			if (this.nextPreviousDirection) {
 				dir = this.nextPreviousDirection.clone().normalize();
 			} else {
-				dir = target.clone().sub(viewer.scene.view.position).normalize();
-				dir.z = 0;
+				// camera source is image position, optional target is target for camera
+				if (image360.target) {
+					// set z coordinate from image z position, go 3 meter down
+					const { x, y, z = image360.position[2] } = image360.target;
+					optionalTarget = new THREE.Vector3(x, y, z - 3);
+					dir = optionalTarget.clone().sub(target).normalize();
+					// set point cloud opacity
+                    this.viewer.setEDLOpacity(0);
+
+                    if (this.viewer.getFOV() > 20) {
+						this.viewer.setFOV(20);
+					}
+				} else {
+					dir = target.clone().sub(viewer.scene.view.position).normalize();
+					dir.z = 0;
+				}
 			}
 
 			let move = dir.multiplyScalar(0.000001);
@@ -275,11 +286,6 @@ export class Images360 extends EventDispatcher{
 	}
 
 	unfocus(){
-		// if next or previous action selected, skip unfocus
-		if (this.nextPrevious) {
-			return;
-		}
-
 		this.removeEventListener('mousewheel', this.zoomOn);
 		document.removeEventListener("keydown", this.keyDown);
 
@@ -327,14 +333,17 @@ export class Images360 extends EventDispatcher{
 		// restore old speed
 		this.viewer.setMoveSpeed(this.oldSpeed);
 		this.oldSpeed = 0;
+
+		// restore old opacity
+		this.viewer.setEDLOpacity(this.oldEdlOpacity);
+		this.oldEdlOpacity = 0;
 	}
 
 	focusNearestImage(forward) {
-		this.nextPrevious = true;
 		const nearestImage = this.getNearestImage(forward);
 
 		if (nearestImage) {
-			this.focusExtern(nearestImage);
+			this.focus(nearestImage);
 		}
 	}
 
@@ -383,7 +392,6 @@ export class Images360 extends EventDispatcher{
 	}
 
 	exit(forward) {
-		this.nextPrevious = false;
 		this.nextPreviousDirection = null;
 
 		this.unfocus();
@@ -517,6 +525,7 @@ export class Images360Loader{
 			images360.node.add(mesh);
 
 			image360.mesh = mesh;
+			image360.mesh.visible = viewer.orbitControls.doubleClockZoomEnabled;
 		}
 	}
 };
