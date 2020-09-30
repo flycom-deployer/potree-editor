@@ -448,20 +448,23 @@ export class PropertiesPanel{
 						selectedRange = [...attribute.range];
 					}
 
-					panel.find('#sldExtraRange').slider({
-						range: true,
-						min: min, 
-						max: max, 
-						step: 0.01,
-						values: selectedRange,
-						slide: (event, ui) => {
-							let [a, b] = ui.values;
+					let minMaxAreNumbers = typeof min === "number" && typeof max === "number";
 
-							material.setRange(attribute.name, [a, b]);
-						}
-					});
+					if(minMaxAreNumbers){
+						panel.find('#sldExtraRange').slider({
+							range: true,
+							min: min, 
+							max: max, 
+							step: 0.01,
+							values: selectedRange,
+							slide: (event, ui) => {
+								let [a, b] = ui.values;
 
-					// material.extraRange = [min, max];
+								material.setRange(attribute.name, [a, b]);
+							}
+						});
+					}
+
 				}
 
 				let blockWeights = $('#materials\\.composite_weight_container');
@@ -730,15 +733,32 @@ export class PropertiesPanel{
 			});
 
 			let updateHeightRange = function () {
-				let box = [pointcloud.pcoGeometry.tightBoundingBox, pointcloud.getBoundingBoxWorld()]
-					.find(v => v !== undefined);
+				
 
-				pointcloud.updateMatrixWorld(true);
-				box = Utils.computeTransformedBoundingBox(box, pointcloud.matrixWorld);
+				let aPosition = pointcloud.getAttribute("position");
 
-				let bWidth = box.max.z - box.min.z;
-				let bMin = box.min.z - 0.2 * bWidth;
-				let bMax = box.max.z + 0.2 * bWidth;
+				let bMin, bMax;
+
+				if(aPosition){
+					// for new format 2.0 and loader that contain precomputed min/max of attributes
+					let min = aPosition.range[0][2];
+					let max = aPosition.range[1][2];
+					let width = max - min;
+
+					bMin = min - 0.2 * width;
+					bMax = max + 0.2 * width;
+				}else{
+					// for format up until exlusive 2.0
+					let box = [pointcloud.pcoGeometry.tightBoundingBox, pointcloud.getBoundingBoxWorld()]
+						.find(v => v !== undefined);
+
+					pointcloud.updateMatrixWorld(true);
+					box = Utils.computeTransformedBoundingBox(box, pointcloud.matrixWorld);
+
+					let bWidth = box.max.z - box.min.z;
+					bMin = box.min.z - 0.2 * bWidth;
+					bMax = box.max.z + 0.2 * bWidth;
+				}
 
 				let range = material.elevationRange;
 
@@ -754,12 +774,18 @@ export class PropertiesPanel{
 				if(attribute == null){
 					return;
 				}
-
 				
 				let range = material.getRange(attributeName);
 
 				if(range == null){
 					range = attribute.range;
+				}
+
+				// currently only supporting scalar ranges.
+				// rgba, normals, positions, etc have vector ranges, however
+				let isValidRange = (typeof range[0] === "number") && (typeof range[1] === "number");
+				if(!isValidRange){
+					return;
 				}
 
 				if(range){

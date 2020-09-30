@@ -240,8 +240,11 @@ float getLOD(){
 			depth++;
 		}else{
 			// no more visible child nodes at this position
-			return value.a * 255.0;
-			//return depth;
+			//return value.a * 255.0;
+
+			float lodOffset = (255.0 * value.a) / 10.0 - 10.0;
+
+			return depth  + lodOffset;
 		}
 		
 		offset = offset + (vec3(1.0, 1.0, 1.0) * nodeSizeAtLevel * 0.5) * index3d;
@@ -683,16 +686,22 @@ float getPointSize(){
 			pointSize = (worldSpaceSize / uOrthoWidth) * uScreenWidth;
 		} else {
 
-			if(uIsLeafNode && false){
-				pointSize = size * spacing * projFactor;
-			}else{
+			// float leafSpacing = 0.122069092 * 8.0;
+			
+			// bool isLeafNode = getLOD() == 1000.0;
+			// if(isLeafNode){
+			// 	// pointSize = size * spacing * projFactor;
+
+			// 	float worldSpaceSize = size * leafSpacing;
+			// 	pointSize = worldSpaceSize * projFactor;
+			// }else{
 				float worldSpaceSize = 1.0 * size * r / getPointSizeAttenuation();
 
 				// minimum world space size
-				// worldSpaceSize = max(worldSpaceSize, 0.02);
+				// worldSpaceSize = max(worldSpaceSize, leafSpacing);
 
 				pointSize = worldSpaceSize * projFactor;
-			}
+			// }
 		}
 	#endif
 
