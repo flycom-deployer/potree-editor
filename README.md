@@ -10,7 +10,7 @@
 
 # Getting Started
 
-### Install
+### Install on your PC
 
 Install [node.js](http://nodejs.org/)
 
@@ -20,7 +20,7 @@ Install dependencies, as specified in package.json, and create a build in ./buil
 npm install
 ```
 
-### Run
+### Run on your PC
 
 Use the `npm start` command to 
 
@@ -29,6 +29,11 @@ Use the `npm start` command to
 * start a web server at localhost:1234. 
 
 Go to http://localhost:1234/examples/ to test the examples.
+
+### Deploy to a server
+
+* Simply upload the Potree folderm with all your point clouds, the build directory, and your html files to a web server.
+* It is not required to install node.js on your webserver. All you need is to host your files online. 
 
 ### Convert Point Clouds to Potree Format
 
@@ -419,6 +424,9 @@ We would like to thank our sponsors for their financial contributions that keep 
 			€ 5,000+
 		</th>
 		<td>
+			<a href="https://www.limit-addict.fr/">
+				<img src="docs/sponsors/limitaddict.png" height="45"/>
+			</a>
 			<a href="http://georepublic.info">
 				<img src="docs/sponsors/georepublic.png" height="45"/>
 			</a>
@@ -430,6 +438,13 @@ We would like to thank our sponsors for their financial contributions that keep 
 			€ 1,000+
 		</th>
 		<td>
+			<a href="https://www.geodelta.com/">
+				<img src="docs/sponsors/geodelta.png" height="35"/> &nbsp;
+			</a>
+			<a href="https://www.sogelink.fr/">
+				<img src="docs/sponsors/SOGELINK_SO-EASY.png" height="40"/> &nbsp;
+			</a>
+			<b>Data-viewer</b>
 			<a href="https://biology.anu.edu.au/research/facilities/australian-plant-phenomics-facility-anu">
 				<img src="docs/sponsors/APPF full logo.png" height="60"/> &nbsp;
 			</a>
