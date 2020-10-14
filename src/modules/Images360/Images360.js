@@ -250,7 +250,7 @@ export class Images360 extends EventDispatcher{
 				if (image360.target) {
 					// set z coordinate from image z position, go 3 meter down
 					const { x, y, z = image360.position[2] } = image360.target;
-					optionalTarget = new THREE.Vector3(x, y, z - 3);
+					optionalTarget = new THREE.Vector3(x, y, z - 1);
 					dir = optionalTarget.clone().sub(target).normalize();
 					// set point cloud opacity
                     this.viewer.setEDLOpacity(0);
