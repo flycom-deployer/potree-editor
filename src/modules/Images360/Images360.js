@@ -321,7 +321,7 @@ export class Images360 extends EventDispatcher{
 		this.focusedImage = null;
 
 		for (let image of this.images) {
-			image.mesh.visible = true;
+			image.mesh.visible = this.visible;
 		}
 
 		this.elUnfocus.style.display = "none";
@@ -527,7 +527,8 @@ export class Images360Loader{
 			images360.node.add(mesh);
 
 			image360.mesh = mesh;
-			image360.mesh.visible = viewer.orbitControls.doubleClockZoomEnabled;
+			// image360.mesh.visible = viewer.orbitControls.doubleClockZoomEnabled;
+			image360.mesh.visible = viewer.orbitControls.doubleClockZoomEnabled && images360.visible;
 		}
 	}
 };
