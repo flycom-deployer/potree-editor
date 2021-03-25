@@ -45,20 +45,20 @@ export class AnnotationTool extends EventDispatcher{
 		callbacks.cancel = e => {
 			annotations.remove(annotation);
 
-			domElement.removeEventListener('mouseup', insertionCallback, true);
+			domElement.removeEventListener('mouseup', insertionCallback, false);
 		};
 
 		callbacks.finish = e => {
-			domElement.removeEventListener('mouseup', insertionCallback, true);
+			domElement.removeEventListener('mouseup', insertionCallback, false);
 		};
 
-		domElement.addEventListener('mouseup', insertionCallback, true);
+		domElement.addEventListener('mouseup', insertionCallback, false);
 
 		let drag = (e) => {
 			let I = Utils.getMousePointCloudIntersection(
-				e.drag.end, 
-				e.viewer.scene.getActiveCamera(), 
-				e.viewer, 
+				e.drag.end,
+				e.viewer.scene.getActiveCamera(),
+				e.viewer,
 				e.viewer.scene.pointclouds,
 				{pickClipped: true});
 
@@ -83,7 +83,7 @@ export class AnnotationTool extends EventDispatcher{
 
 		return annotation;
 	}
-	
+
 	update(){
 		// let camera = this.viewer.scene.getActiveCamera();
 		// let domElement = this.renderer.domElement;
