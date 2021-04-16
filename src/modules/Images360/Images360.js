@@ -240,7 +240,6 @@ export class Images360 extends EventDispatcher{
 			let target = new THREE.Vector3(...image360.position);
 
 			let dir;
-			let optionalTarget;
 
 			// calculate direction
 			if (this.nextPreviousDirection) {
@@ -248,14 +247,18 @@ export class Images360 extends EventDispatcher{
 			} else {
 				// camera source is image position, optional target is target for camera
 				if (image360.target) {
-					// set z coordinate from image z position, go 3 meter down
+					// if the target has no z coordinate, take it from image position
 					const { x, y, z = image360.position[2] } = image360.target;
-					optionalTarget = new THREE.Vector3(x, y, z - 3);
+					// get additional target and viewer settings
+					const { panoramaTargetOffsetZ = 0, panoramaTargetZoomIn = false } = image360.targetSettings || {};
+
+					const optionalTarget = new THREE.Vector3(x, y, z + panoramaTargetOffsetZ);
 					dir = optionalTarget.clone().sub(target).normalize();
+
 					// set point cloud opacity
                     this.viewer.setEDLOpacity(0);
 
-                    if (this.viewer.getFOV() > 20) {
+                    if (panoramaTargetZoomIn && this.viewer.getFOV() > 20) {
 						this.viewer.setFOV(20);
 					}
 				} else {
