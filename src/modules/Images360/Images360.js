@@ -32,7 +32,7 @@ export class Image360{
 };
 
 export class Images360 extends EventDispatcher{
-	constructor(viewer){
+	constructor(viewer, buttons = true){
 		super();
 
 		this.viewer = viewer;
@@ -107,6 +107,7 @@ export class Images360 extends EventDispatcher{
 		elUnfocus.style.fontSize = "1.5em";
 		elUnfocus.style.cursor = "pointer";
 		elUnfocus.style.paddingBottom = "2px";
+		elUnfocus.style.visibility = buttons ? 'inherit' : 'hidden';
 		elUnfocus.addEventListener("click", () => this.exit());
 		this.elUnfocus = elUnfocus;
 
@@ -119,6 +120,7 @@ export class Images360 extends EventDispatcher{
 		elPrev.style.fontSize = "1.5em";
 		elPrev.style.cursor = "pointer";
 		elPrev.style.paddingBottom = "2px";
+		elPrev.style.visibility = buttons ? 'inherit' : 'hidden';
 		elPrev.addEventListener("click", () => this.focusNearestImage(false));
 		this.elPrev = elPrev;
 
@@ -131,6 +133,7 @@ export class Images360 extends EventDispatcher{
 		elNext.style.fontSize = "1.5em";
 		elNext.style.cursor = "pointer";
 		elNext.style.paddingBottom = "2px";
+		elNext.style.visibility = buttons ? 'inherit' : 'hidden';
 		elNext.addEventListener("click", () => this.focusNearestImage(true));
 		this.elNext = elNext;
 
