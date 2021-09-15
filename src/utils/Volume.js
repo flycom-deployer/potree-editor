@@ -109,7 +109,7 @@ export class BoxVolume extends Volume{
 
 		// TODO
 		this.color = [];
-		this.colorIndex = -1;
+		this.targetClassification = -1;
 		this.constructor.counter = (this.constructor.counter === undefined) ? 0 : this.constructor.counter + 1;
 		this.name = 'box_' + this.constructor.counter;
 

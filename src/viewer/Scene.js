@@ -498,11 +498,11 @@ export class Scene extends EventDispatcher{
 				if (type === 0) {
 					const box = viewer.scene.volumes[index];
 					const matrixInverse = new THREE.Matrix4().getInverse(box.matrixWorld);
-					const colorIndex = box.colorIndex;
+					const targetClassification = box.targetClassification;
 
 					return {
 						type: 'box',
-						colorIndex,
+						targetClassification,
 						matrix: matrixInverse,
 					};
 				} else if (type === 1) {
@@ -523,11 +523,11 @@ export class Scene extends EventDispatcher{
 						});
 					}
 
-					const colorIndex = polygon.colorIndex;
+					const targetClassification = polygon.targetClassification;
 
 					return {
 						type: 'polygon',
-						colorIndex,
+						targetClassification,
 						matrix: projViewMatrix,
 						vertices: flattenedVertices,
 					};
@@ -609,7 +609,7 @@ export class Scene extends EventDispatcher{
 		volume.update();
 
 		const { index, color } = this.getCurrentClassification(viewer);
-		volume.colorIndex = index;
+		volume.targetClassification = index;
 		volume.color = [color[0], color[1], color[2]];
 
 		this.addVolume(volume, true);
@@ -701,7 +701,7 @@ export class Scene extends EventDispatcher{
 		// const key = selectedIndex.toString();
 		// console.log(classifications, key, this.viewer.classifications[key]);
 		const color = viewer.classifications[key].color;
-		volume.colorIndex = key;
+		volume.targetClassification = key;
 		volume.color = [color[0], color[1], color[2]];
 
 		this.addVolume(volume, true);

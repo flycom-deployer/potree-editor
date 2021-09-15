@@ -395,7 +395,7 @@ function classifyPoint(x, y, z, commands, classification) {
 
 		for (let j = 0; j < selections.length; j++) {
 			let inside;
-			const {type, colorIndex, matrix, vertices} = selections[j];
+			const {type, targetClassification, matrix, vertices} = selections[j];
 
 			if (type === 'box') {
 				// from world to box local
@@ -406,13 +406,13 @@ function classifyPoint(x, y, z, commands, classification) {
 					&& (-0.5 <= z1 && z1 <= 0.5);
 
 				if (inside) {
-					_clipColor = colorIndex;
+					_clipColor = targetClassification;
 				}
 			} else if (type === 'polygon') {
 				inside = pointInClipPolygon(x, y, z, vertices, matrix.elements);
 
 				if (inside) {
-					_clipColor = colorIndex;
+					_clipColor = targetClassification;
 				}
 			}
 

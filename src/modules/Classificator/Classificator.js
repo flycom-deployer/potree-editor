@@ -109,7 +109,7 @@ export default class Classificator {
           let inside;
           const _pos = pos.clone();
 
-          const {type, colorIndex, matrix, vertices} = this.selections[j];
+          const {type, targetClassification, matrix, vertices} = this.selections[j];
 
           if (type === 'box') {
               // from world to box local
@@ -120,13 +120,13 @@ export default class Classificator {
                   && (-0.5 <= _pos.z && _pos.z <= 0.5);
 
                 if(inside){
-                    _clipColor = colorIndex;
+                    _clipColor = targetClassification;
                 }
           } else if (type === 'polygon') {
               inside = this.pointInClipPolygon(_pos.x, _pos.y, _pos.z, vertices, matrix.elements);
 
               if(inside){
-                  _clipColor = colorIndex;
+                  _clipColor = targetClassification;
               }
           }
 

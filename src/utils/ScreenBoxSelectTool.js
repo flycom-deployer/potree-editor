@@ -102,7 +102,7 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 
 		// set current classification
 		const { index, color } = this.viewer.scene.getCurrentClassification(this.viewer);
-		polyClipVol.colorIndex = index;
+		polyClipVol.targetClassification = index;
 		polyClipVol.color = [color[0], color[1], color[2]];
 
 		this.viewer.scene.addPolygonClipVolume(polyClipVol);
