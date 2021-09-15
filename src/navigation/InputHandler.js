@@ -17,7 +17,7 @@ export class InputHandler extends EventDispatcher {
 		this.renderer = viewer.renderer;
 		this.domElement = this.renderer.domElement;
 		this.enabled = true;
-		
+
 		this.scene = null;
 		this.interactiveScenes = [];
 		this.interactiveObjects = new Set();
@@ -88,7 +88,7 @@ export class InputHandler extends EventDispatcher {
 			this.startDragging(null);
 		}
 
-		
+
 		for (let inputListener of this.getSortedListeners()) {
 			inputListener.dispatchEvent({
 				type: e.type,
@@ -214,6 +214,8 @@ export class InputHandler extends EventDispatcher {
 	}
 
 	onDoubleClick (e) {
+		if(!this.enabled) return;
+
 		if (this.logMessages) console.log(this.constructor.name + ': onDoubleClick');
 
 		let consumed = false;
@@ -304,7 +306,7 @@ export class InputHandler extends EventDispatcher {
 
 		let noMovement = this.getNormalizedDrag().length() === 0;
 
-		
+
 		let consumed = false;
 		let consume = () => { return consumed = true; };
 		if (this.hoveredElements.length === 0) {
@@ -331,6 +333,7 @@ export class InputHandler extends EventDispatcher {
 					consume: consume
 				});
 			}
+
 		}
 
 		if (this.drag) {
@@ -464,7 +467,7 @@ export class InputHandler extends EventDispatcher {
 				let object = hoveredElements
 					.map(e => e.object)
 					.find(e => (e._listeners && e._listeners['mousemove']));
-				
+
 				if(object){
 					object.dispatchEvent({
 						type: 'mousemove',
@@ -474,23 +477,23 @@ export class InputHandler extends EventDispatcher {
 			}
 
 		}
-		
+
 		// for (let inputListener of this.getSortedListeners()) {
 		// 	inputListener.dispatchEvent({
 		// 		type: 'mousemove',
 		// 		object: null
 		// 	});
 		// }
-		
+
 
 		this.hoveredElements = hoveredElements;
 	}
-	
+
 	onMouseWheel(e){
 		if(!this.enabled) return;
 
 		if(this.logMessages) console.log(this.constructor.name + ": onMouseWheel");
-		
+
 		e.preventDefault();
 
 		let delta = 0;
@@ -543,9 +546,9 @@ export class InputHandler extends EventDispatcher {
 
 	getMousePointCloudIntersection (mouse) {
 		return Utils.getMousePointCloudIntersection(
-			this.mouse, 
-			this.scene.getActiveCamera(), 
-			this.viewer, 
+			this.mouse,
+			this.scene.getActiveCamera(),
+			this.viewer,
 			this.scene.pointclouds);
 	}
 
@@ -667,10 +670,10 @@ export class InputHandler extends EventDispatcher {
 				}
 			});
 		}
-		
+
 		let camera = this.scene.getActiveCamera();
 		let ray = Utils.mouseToRay(this.mouse, camera, this.domElement.clientWidth, this.domElement.clientHeight);
-		
+
 		let raycaster = new THREE.Raycaster();
 		raycaster.ray.set(ray.origin, ray.direction);
 		raycaster.linePrecision = 0.2;

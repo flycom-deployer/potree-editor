@@ -3,7 +3,6 @@ import {PointCloudTree} from "./PointCloudTree.js";
 import {PointCloudOctreeNode} from "./PointCloudOctree.js";
 import {PointCloudArena4DNode} from "./arena4d/PointCloudArena4D.js";
 import {PointSizeType, ClipTask, ElevationGradientRepeat} from "./defines.js";
-
 // Copied from three.js: WebGLRenderer.js
 function paramThreeToGL(_gl, p) {
 
@@ -280,7 +279,7 @@ class Shader {
 			}
 
 			// uniform blocks
-			if(gl instanceof WebGL2RenderingContext){ 
+			if(gl instanceof WebGL2RenderingContext){
 				let numBlocks = gl.getProgramParameter(program, gl.ACTIVE_UNIFORM_BLOCKS);
 
 				for (let i = 0; i < numBlocks; i++) {
@@ -293,7 +292,7 @@ class Shader {
 					gl.uniformBlockBinding(program, blockIndex, blockIndex);
 					let dataSize = gl.getActiveUniformBlockParameter(program, blockIndex, gl.UNIFORM_BLOCK_DATA_SIZE);
 
-					let uBuffer = gl.createBuffer();	
+					let uBuffer = gl.createBuffer();
 					gl.bindBuffer(gl.UNIFORM_BUFFER, uBuffer);
 					gl.bufferData(gl.UNIFORM_BUFFER, dataSize, gl.DYNAMIC_READ);
 
@@ -328,8 +327,6 @@ class Shader {
 		const duration = tEnd - tStart;
 
 		console.log(`shader compile duration: ${duration.toFixed(3)}`);
-
-
 	}
 
 	setUniformMatrix4(name, value) {
@@ -656,7 +653,7 @@ export class Renderer {
 				//attributeLocation = attributeLocations["aExtra"];
 			}else{
 				let attributeLocation = attributeLocations[attributeName].location;
-				
+
 				gl.vertexAttribPointer(attributeLocation, bufferAttribute.itemSize, type, normalized, 0, 0);
 				gl.enableVertexAttribArray(attributeLocation);
 			}
@@ -695,7 +692,6 @@ export class Renderer {
 
 
 	renderNodes(octree, nodes, visibilityTextureData, camera, target, shader, params) {
-
 		if (exports.measureTimings) performance.mark("renderNodes-start");
 
 		let gl = this.gl;
@@ -782,8 +778,15 @@ export class Renderer {
 					let flattenedMatrices = [].concat(...worldViewProjMatrices.map(m => m.elements));
 
 					let flattenedVertices = new Array(8 * 3 * material.clipPolygons.length);
+
+					let flattenedColors = new Float32Array(material.clipPolygons.length * 3);
+
 					for(let i = 0; i < material.clipPolygons.length; i++){
 						let clipPolygon = material.clipPolygons[i];
+
+						// TODO
+						flattenedColors.set(clipPolygon.color, 3 * i);
+
 						for(let j = 0; j < clipPolygon.markers.length; j++){
 							flattenedVertices[i * 24 + (j * 3 + 0)] = clipPolygon.markers[j].position.x;
 							flattenedVertices[i * 24 + (j * 3 + 1)] = clipPolygon.markers[j].position.y;
@@ -800,6 +803,9 @@ export class Renderer {
 					const lClipPolygons = shader.uniformLocations["uClipPolygonVertices[0]"];
 					gl.uniform3fv(lClipPolygons, flattenedVertices);
 
+					// TODO set clip color uniform
+					const uClipPolygonVColors = shader.uniformLocations["uClipPolygonVColors[0]"];
+					gl.uniform3fv(uClipPolygonVColors, flattenedColors);
 				}
 			}
 
@@ -910,9 +916,7 @@ export class Renderer {
 				let uFilterReturnNumberRange = material.uniforms.uFilterReturnNumberRange.value;
 				let uFilterNumberOfReturnsRange = material.uniforms.uFilterNumberOfReturnsRange.value;
 				let uFilterPointSourceIDClipRange = material.uniforms.uFilterPointSourceIDClipRange.value;
-				
-				
-				
+
 				shader.setUniform2f("uFilterReturnNumberRange", uFilterReturnNumberRange);
 				shader.setUniform2f("uFilterNumberOfReturnsRange", uFilterNumberOfReturnsRange);
 				shader.setUniform2f("uFilterPointSourceIDClipRange", uFilterPointSourceIDClipRange);
@@ -924,6 +928,7 @@ export class Renderer {
 				this.buffers.set(geometry, webglBuffer);
 			}else{
 				webglBuffer = this.buffers.get(geometry);
+
 				for(let attributeName in geometry.attributes){
 					let attribute = geometry.attributes[attributeName];
 
@@ -946,7 +951,7 @@ export class Renderer {
 				for(const attributeName in geometry.attributes){
 					const bufferAttribute = geometry.attributes[attributeName];
 					const vbo = webglBuffer.vbos.get(attributeName);
-					
+
 					gl.bindBuffer(gl.ARRAY_BUFFER, vbo.handle);
 					gl.disableVertexAttribArray(attributeLocation);
 				}
@@ -990,7 +995,7 @@ export class Renderer {
 					let offset = -(globalRange[0] - initialRange[0]) / initialRangeSize;
 
 					shader.setUniform1f("uExtraScale", scale);
-					shader.setUniform1f("uExtraOffset", offset);					
+					shader.setUniform1f("uExtraOffset", offset);
 				}
 
 			}else{
@@ -1005,11 +1010,11 @@ export class Renderer {
 
 						let type = this.glTypeMapping.get(bufferAttribute.array.constructor);
 						let normalized = bufferAttribute.normalized;
-						
+
 						gl.bindBuffer(gl.ARRAY_BUFFER, vbo.handle);
 						gl.vertexAttribPointer(attributeLocation, bufferAttribute.itemSize, type, normalized, 0, 0);
 						gl.enableVertexAttribArray(attributeLocation);
-						
+
 					}
 				}
 			}
@@ -1078,6 +1083,9 @@ export class Renderer {
 				let numClipBoxes = (material.clipBoxes && material.clipBoxes.length) ? material.clipBoxes.length : 0;
 				let numClipSpheres = (params.clipSpheres && params.clipSpheres.length) ? params.clipSpheres.length : 0;
 				let numClipPolygons = (material.clipPolygons && material.clipPolygons.length) ? material.clipPolygons.length : 0;
+				// TODO
+				let activeCount = material.uniforms.activeClassifications.value.length;
+				let selectionCount = material.uniforms.selections.value.length;
 
 				let defines = [
 					`#define num_shadowmaps ${shadowMaps.length}`,
@@ -1085,7 +1093,10 @@ export class Renderer {
 					`#define num_clipboxes ${numClipBoxes}`,
 					`#define num_clipspheres ${numClipSpheres}`,
 					`#define num_clippolygons ${numClipPolygons}`,
+					`#define active_count ${activeCount}`,
+					`#define selection_count ${selectionCount}`,
 				];
+
 
 
 				if(octree.pcoGeometry.root.isLoaded()){
@@ -1196,9 +1207,8 @@ export class Renderer {
 			 }else{
 				 gl.depthMask(false);
 			 }
-			 
-		}
 
+		}
 
 		{ // UPDATE UNIFORMS
 			shader.setUniformMatrix4("projectionMatrix", proj);
@@ -1214,10 +1224,10 @@ export class Renderer {
 			shader.setUniform1f("fov", Math.PI * camera.fov / 180);
 			shader.setUniform1f("near", camera.near);
 			shader.setUniform1f("far", camera.far);
-			
+
 			if(camera instanceof THREE.OrthographicCamera){
 				shader.setUniform("uUseOrthographicCamera", true);
-				shader.setUniform("uOrthoWidth", camera.right - camera.left); 
+				shader.setUniform("uOrthoWidth", camera.right - camera.left);
 				shader.setUniform("uOrthoHeight", camera.top - camera.bottom);
 			}else{
 				shader.setUniform("uUseOrthographicCamera", false);
@@ -1231,6 +1241,15 @@ export class Renderer {
 
 			shader.setUniform1i("clipMethod", material.clipMethod);
 
+			// TODO
+			const uActiveClassifications = shader.uniformLocations["activeClassifications[0]"];
+			gl.uniform1iv(uActiveClassifications, material.uniforms.activeClassifications.value);
+
+			if (material.uniforms.selections.value.length) {
+				const selections = shader.uniformLocations["selections[0]"];
+				gl.uniform1iv(selections, material.uniforms.selections.value);
+			}
+
 			if (material.clipBoxes && material.clipBoxes.length > 0) {
 				//let flattenedMatrices = [].concat(...material.clipBoxes.map(c => c.inverse.elements));
 
@@ -1239,6 +1258,11 @@ export class Renderer {
 
 				const lClipBoxes = shader.uniformLocations["clipBoxes[0]"];
 				gl.uniformMatrix4fv(lClipBoxes, false, material.uniforms.clipBoxes.value);
+
+				// TODO set clip color uniform
+				// console.log(1, material.uniforms.clipBoxesColors.value, material.uniforms.clipBoxes.value);
+				const lClipBoxesColors = shader.uniformLocations["clipBoxesColors[0]"];
+				gl.uniform3fv(lClipBoxesColors, material.uniforms.clipBoxesColors.value);
 			}
 
 			// TODO CLIPSPHERES
@@ -1265,7 +1289,7 @@ export class Renderer {
 
 				const lClipSpheres = shader.uniformLocations["uClipSpheres[0]"];
 				gl.uniformMatrix4fv(lClipSpheres, false, flattenedMatrices);
-				
+
 				//const lClipSpheres = shader.uniformLocations["uClipSpheres[0]"];
 				//gl.uniformMatrix4fv(lClipSpheres, false, material.uniforms.clipSpheres.value);
 			}
@@ -1291,14 +1315,14 @@ export class Renderer {
 
 
 			shader.setUniform3f("uIntensity_gbc", [
-				material.intensityGamma, 
-				material.intensityBrightness, 
+				material.intensityGamma,
+				material.intensityBrightness,
 				material.intensityContrast
 			]);
 
 			shader.setUniform3f("uRGB_gbc", [
-				material.rgbGamma, 
-				material.rgbBrightness, 
+				material.rgbGamma,
+				material.rgbBrightness,
 				material.rgbContrast
 			]);
 
@@ -1424,7 +1448,7 @@ export class Renderer {
 
 		const gl = this.gl;
 
-		// PREPARE 
+		// PREPARE
 		if (target != null) {
 			this.threeRenderer.setRenderTarget(target);
 		}

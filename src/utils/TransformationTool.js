@@ -15,6 +15,18 @@ export class TransformationTool {
 
 		this.viewer.inputHandler.registerInteractiveScene(this.scene);
 		this.viewer.inputHandler.addEventListener('selection_changed', (e) => {
+			const isClipping = this.viewer.clipTask === 2;
+			const polygonsCount = this.viewer.scene.polygonClipVolumes.length;
+
+			const visible = isClipping && polygonsCount === 1;
+
+			if (!visible) {
+				setTimeout(() => {
+					this.viewer.inputHandler.deselectAll();
+				}, 0);
+				//return false;
+			}
+
 			for(let selected of this.selection){
 				this.viewer.inputHandler.blacklist.delete(selected);
 			}
@@ -24,13 +36,12 @@ export class TransformationTool {
 			for(let selected of this.selection){
 				this.viewer.inputHandler.blacklist.add(selected);
 			}
-
 		});
 
 		let red = 0xE73100;
 		let green = 0x44A24A;
 		let blue = 0x2669E7;
-		
+
 		this.activeHandle = null;
 		this.scaleHandles = {
 			"scale.x+": {name: "scale.x+", node: new THREE.Object3D(), color: red, alignment: [+1, +0, +0]},
@@ -100,7 +111,7 @@ export class TransformationTool {
 		this.frame = new THREE.LineSegments(boxFrameGeometry, new THREE.LineBasicMaterial({color: 0xffff00}));
 		this.scene.add(this.frame);
 
-		
+
 	}
 
 	initializeScaleHandles(){
@@ -120,7 +131,7 @@ export class TransformationTool {
 				});
 
 			let outlineMaterial = new THREE.MeshBasicMaterial({
-				color: 0x000000, 
+				color: 0x000000,
 				side: THREE.BackSide,
 				opacity: 0.4,
 				transparent: true});
@@ -134,7 +145,7 @@ export class TransformationTool {
 			sphere.scale.set(1.3, 1.3, 1.3);
 			sphere.name = `${handleName}.handle`;
 			node.add(sphere);
-			
+
 			let outline = new THREE.Mesh(sgSphere, outlineMaterial);
 			outline.scale.set(1.4, 1.4, 1.4);
 			outline.name = `${handleName}.outline`;
@@ -170,6 +181,7 @@ export class TransformationTool {
 			pickSphere.addEventListener("click", e => {
 				e.consume();
 			});
+
 
 			pickSphere.addEventListener("mouseleave", e => {
 				//node.setOpacity(0.4);
@@ -220,7 +232,7 @@ export class TransformationTool {
 			});
 
 			//let outlineMaterial = new THREE.MeshBasicMaterial({
-			//	color: 0x000000, 
+			//	color: 0x000000,
 			//	side: THREE.BackSide,
 			//	opacity: 0,
 			//	transparent: true});
@@ -237,7 +249,7 @@ export class TransformationTool {
 			box.visible = false;
 			node.add(box);
 			//handle.focusNode = box;
-			
+
 			//let outline = new THREE.Mesh(sgPlane, outlineMaterial);
 			//outline.scale.set(1.4, 1.4, 1.4);
 			//outline.name = `${handleName}.outline`;
@@ -312,7 +324,7 @@ export class TransformationTool {
 				transparent: true});
 
 			let outlineMaterial = new THREE.MeshBasicMaterial({
-				color: 0x000000, 
+				color: 0x000000,
 				side: THREE.BackSide,
 				opacity: 0.4,
 				transparent: true});
@@ -379,7 +391,7 @@ export class TransformationTool {
 				transparent: true});
 
 			let outlineMaterial = new THREE.MeshBasicMaterial({
-				color: 0x000000, 
+				color: 0x000000,
 				side: THREE.BackSide,
 				opacity: 0.4,
 				transparent: true});
@@ -428,7 +440,7 @@ export class TransformationTool {
 			//	//let a = this.viewer.scene.getActiveCamera().getWorldDirection(new THREE.Vector3()).dot(pickVolume.getWorldDirection(new THREE.Vector3()));
 			//	console.log(pickVolume.getWorldDirection(new THREE.Vector3()));
 			//});
-			
+
 			pickVolume.addEventListener("drag", (e) => {this.dragRotationHandle(e)});
 			pickVolume.addEventListener("drop", (e) => {this.dropRotationHandle(e)});
 		}
@@ -474,7 +486,7 @@ export class TransformationTool {
 		let mouse = drag.end;
 		let domElement = this.viewer.renderer.domElement;
 		let ray = Utils.mouseToRay(mouse, camera, domElement.clientWidth, domElement.clientHeight);
-		
+
 		let I = ray.intersectPlane(drag.dragPlane, new THREE.Vector3());
 
 		if (I) {
@@ -514,7 +526,7 @@ export class TransformationTool {
 		let drag = e.drag;
 		let handle = this.activeHandle;
 		let camera = this.viewer.scene.getActiveCamera();
-			
+
 		if(!drag.intersectionStart && handle){
 			drag.intersectionStart = drag.location;
 			drag.objectStart = drag.object.getWorldPosition(new THREE.Vector3());
@@ -671,6 +683,8 @@ export class TransformationTool {
 			}else{
 				handle.node.setOpacity(0.4)
 			}
+
+			handle.node.setOpacity(0.0);
 		}
 
 		for(let handleName of Object.keys(this.translationHandles)){
@@ -681,6 +695,8 @@ export class TransformationTool {
 			}else{
 				handle.node.setOpacity(0.4)
 			}
+
+			handle.node.setOpacity(0.0);
 		}
 
 		for(let handleName of Object.keys(this.rotationHandles)){
@@ -693,6 +709,7 @@ export class TransformationTool {
 			//}
 
 			handle.node.setOpacity(0.4);
+			handle.node.setOpacity(0.0);
 		}
 
 		for(let handleName of Object.keys(this.scaleHandles)){
@@ -704,10 +721,13 @@ export class TransformationTool {
 				let relatedFocusHandle = this.focusHandles[handle.name.replace("scale", "focus")];
 				let relatedFocusNode = relatedFocusHandle.node;
 				relatedFocusNode.setOpacity(0.4);
+				relatedFocusNode.setOpacity(0.0);
 
 				for(let translationHandleName of Object.keys(this.translationHandles)){
 					let translationHandle = this.translationHandles[translationHandleName];
 					translationHandle.node.setOpacity(0.4);
+
+					translationHandle.node.setOpacity(0.0);
 				}
 
 				//let relatedTranslationHandle = this.translationHandles[
@@ -721,7 +741,7 @@ export class TransformationTool {
 			}
 		}
 
-		
+
 
 
 
@@ -729,13 +749,16 @@ export class TransformationTool {
 			handle.node.setOpacity(1.0);
 		}
 
-		
+
 	}
 
 	update () {
+		const isClipping = this.viewer.clipTask === 2;
+		const polygonsCount = this.viewer.scene.polygonClipVolumes.length;
 
-		if(this.selection.length === 1){
+		const hidden = isClipping && polygonsCount > 1;
 
+		if(this.selection.length === 1 && !hidden){
 			this.scene.visible = true;
 
 			this.scene.updateMatrix();
@@ -851,13 +874,13 @@ export class TransformationTool {
 					}
 				}
 
-				// 
+				//
 				for(let handleName of Object.keys(this.scaleHandles)){
 					let handle = this.handles[handleName];
 					let node = handle.node;
 					let alignment = handle.alignment;
 
-					
+
 
 				}
 			}
@@ -882,7 +905,7 @@ export class TransformationTool {
 		}else{
 			this.scene.visible = false;
 		}
-		
+
 	}
 
 };

@@ -1,9 +1,12 @@
 
 export class PolygonClipVolume extends THREE.Object3D{
-	
+
 	constructor(camera){
 		super();
 
+		// TODO
+		this.color = [];
+		this.colorIndex = -1;
 		this.constructor.counter = (this.constructor.counter === undefined) ? 0 : this.constructor.counter + 1;
 		this.name = "polygon_clip_volume_" + this.constructor.counter;
 
@@ -14,6 +17,7 @@ export class PolygonClipVolume extends THREE.Object3D{
 		this.camera.updateProjectionMatrix();
 		this.camera.matrixWorldInverse.getInverse(this.camera.matrixWorld);
 
+
 		this.viewMatrix = this.camera.matrixWorldInverse.clone();
 		this.projMatrix = this.camera.projectionMatrix.clone();
 
@@ -22,9 +26,39 @@ export class PolygonClipVolume extends THREE.Object3D{
 		this.initialized = false;
 	}
 
-	addMarker() {
+	updateMarker(x, y, index) {
+		let marker = this.markers[index];
+
+		if (!marker) {
+			return;
+		}
+
+		// TODO change
+		let size = window.viewer.renderer.getSize(new THREE.Vector2());
+
+		let projectedPos = new THREE.Vector3(
+			2.0 * (x / size.width) - 1.0,
+			-2.0 * (y / size.height) + 1.0,
+			0
+		);
+
+		marker.position.copy(projectedPos);
+	}
+
+	addMarker(x, y) {
 
 		let marker = new THREE.Mesh();
+
+		// TODO change
+		let size = window.viewer.renderer.getSize(new THREE.Vector2());
+
+		let projectedPos = new THREE.Vector3(
+			2.0 * (x / size.width) - 1.0,
+			-2.0 * (y / size.height) + 1.0,
+			0
+		);
+
+		marker.position.copy(projectedPos);
 
 		let cancel;
 
@@ -38,16 +72,16 @@ export class PolygonClipVolume extends THREE.Object3D{
 
 			marker.position.copy(projectedPos);
 		};
-		
-		let drop = e => {	
+
+		let drop = e => {
 			cancel();
 		};
-		
+
 		cancel = e => {
 			marker.removeEventListener("drag", drag);
 			marker.removeEventListener("drop", drop);
 		};
-		
+
 		marker.addEventListener("drag", drag);
 		marker.addEventListener("drop", drop);
 

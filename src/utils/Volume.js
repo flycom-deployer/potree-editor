@@ -64,7 +64,7 @@ export class Volume extends THREE.Object3D {
 	}
 
 	update () {
-		
+
 	};
 
 	raycast (raycaster, intersects) {
@@ -87,7 +87,7 @@ export class Volume extends THREE.Object3D {
 				object: this
 			});
 		}
-		
+
 	}
 
 	get modifieable () {
@@ -107,6 +107,9 @@ export class BoxVolume extends Volume{
 	constructor(args = {}){
 		super(args);
 
+		// TODO
+		this.color = [];
+		this.colorIndex = -1;
 		this.constructor.counter = (this.constructor.counter === undefined) ? 0 : this.constructor.counter + 1;
 		this.name = 'box_' + this.constructor.counter;
 
@@ -207,6 +210,8 @@ export class SphereVolume extends Volume{
 	constructor(args = {}){
 		super(args);
 
+		// TODO
+		this.color = [];
 		this.constructor.counter = (this.constructor.counter === undefined) ? 0 : this.constructor.counter + 1;
 		this.name = 'sphere_' + this.constructor.counter;
 
@@ -330,7 +335,7 @@ export class SphereVolume extends Volume{
 			});
 		}
 	}
-	
+
 	// see https://en.wikipedia.org/wiki/Ellipsoid#Volume
 	getVolume(){
 		return (4 / 3) * Math.PI * this.scale.x * this.scale.y * this.scale.z;

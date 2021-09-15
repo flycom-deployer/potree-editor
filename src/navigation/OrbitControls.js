@@ -43,6 +43,10 @@ export class OrbitControls extends EventDispatcher{
 		this.tweens = [];
 
 		let drag = (e) => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			if (e.drag.object !== null) {
 				return;
 			}
@@ -72,10 +76,18 @@ export class OrbitControls extends EventDispatcher{
 		};
 
 		let drop = e => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			this.dispatchEvent({type: 'end'});
 		};
 
 		let scroll = (e) => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			if(!this.doubleClockZoomEnabled){
 				return;
 			}
@@ -87,6 +99,10 @@ export class OrbitControls extends EventDispatcher{
 		};
 
 		let dblclick = (e) => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			if(this.doubleClockZoomEnabled){
 				this.zoomToLocation(e.mouse);
 			}
@@ -94,14 +110,26 @@ export class OrbitControls extends EventDispatcher{
 
 		let previousTouch = null;
 		let touchStart = e => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			previousTouch = e;
 		};
 
 		let touchEnd = e => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			previousTouch = e;
 		};
 
 		let touchMove = e => {
+			if (!this.viewer.inputHandler.enabled) {
+				return;
+			}
+
 			if(!this.doubleClockZoomEnabled){
 				return;
 			}

@@ -98,10 +98,13 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			bbSize:				{ type: "fv", value: [0, 0, 0] },
 			elevationRange:		{ type: "2fv", value: [0, 0] },
 
+			selections:			{ type: "iv", value: [] },
 			clipBoxCount:		{ type: "f", value: 0 },
 			//clipSphereCount:	{ type: "f", value: 0 },
 			clipPolygonCount:	{ type: "i", value: 0 },
 			clipBoxes:			{ type: "Matrix4fv", value: [] },
+			clipBoxesColors:	{ type: "3fv", value: [] },
+			activeClassifications:	{ type: "iv", value: [] },
 			//clipSpheres:		{ type: "Matrix4fv", value: [] },
 			clipPolygons:		{ type: "3fv", value: [] },
 			clipPolygonVCount:	{ type: "iv", value: [] },
@@ -159,7 +162,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 		this.vertexShader = Shaders['pointcloud.vs'];
 		this.fragmentShader = Shaders['pointcloud.fs'];
-		
+
 		this.vertexColors = THREE.VertexColors;
 
 		this.updateShaderSource();
@@ -256,7 +259,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 			defines.push(`#define color_type_${attributeName}`);
 		}
-		
+
 		if(this._treeType === TreeType.OCTREE){
 			defines.push('#define tree_type_octree');
 		}else if(this._treeType === TreeType.KDTREE){
@@ -288,12 +291,52 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			this.updateShaderSource();
 		}
 
+
 		this.uniforms.clipBoxes.value = new Float32Array(this.clipBoxes.length * 16);
 
+		// TODO set color to material
+		this.uniforms.clipBoxesColors.value = new Float32Array(this.clipBoxes.length * 3);
+		//console.log(this.clipBoxes.length);
+
+		// TODO set active classifications
+		const visibleClassifications = Object.entries(window.viewer.classifications)
+			.filter(([, value]) => value.visible)
+			.map(([key, ]) => key);
+
+		// TODO
+		const activeClassifications = [...(window.viewer.activeClassifications || visibleClassifications)]
+			.filter(classification => visibleClassifications.includes(classification));
+
+		if (activeClassifications.length) {
+			this.uniforms.activeClassifications.value = new Uint8Array(activeClassifications.length);
+
+			for (let i = 0; i < activeClassifications.length; i++) {
+				let value = parseInt(activeClassifications[i]);
+				this.uniforms.activeClassifications.value.set([value], i);
+			}
+		}
+
+		// TODO
+		if (window.viewer.scene.selections.length) {
+			this.uniforms.selections.value = new Uint8Array(window.viewer.scene.selections.length * 2);
+
+			for (let i = 0; i < window.viewer.scene.selections.length; i++) {
+				const {type, index} = window.viewer.scene.selections[i];
+				this.uniforms.selections.value.set([type], 2 * i);
+				this.uniforms.selections.value.set([index], 2 * i + 1);
+			}
+		}
+
+
+		// console.log(this.clipBoxes.length);
 		for (let i = 0; i < this.clipBoxes.length; i++) {
 			let box = clipBoxes[i];
 
 			this.uniforms.clipBoxes.value.set(box.inverse.elements, 16 * i);
+
+			// TODO set color to material
+			// console.log('color', box.box.color);
+			this.uniforms.clipBoxesColors.value.set(box.box.color || '', 3 * i);
 		}
 
 		for (let i = 0; i < this.uniforms.clipBoxes.value.length; i++) {
@@ -316,7 +359,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			this.updateShaderSource();
 		}
 	}
-	
+
 	get gradient(){
 		return this._gradient;
 	}
@@ -532,7 +575,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			this.uniforms.far.value = value;
 		}
 	}
-	
+
 	get opacity(){
 		return this.uniforms.uOpacity.value;
 	}
@@ -612,7 +655,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 	set color (value) {
 		if (!this.uniforms.uColor.value.equals(value)) {
 			this.uniforms.uColor.value.copy(value);
-			
+
 			this.dispatchEvent({
 				type: 'color_changed',
 				target: this
@@ -849,7 +892,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 		}
 	}
 
-	
+
 	get extraGamma () {
 		return this.uniforms.uExtraGammaBrightContr.value[0];
 	}
@@ -1049,11 +1092,11 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 		context.fillStyle = ctxGradient;
 		context.fill();
-		
+
 		//let texture = new THREE.Texture(canvas);
 		let texture = new THREE.CanvasTexture(canvas);
 		texture.needsUpdate = true;
-		
+
 		texture.minFilter = THREE.LinearFilter;
 		texture.wrap = THREE.RepeatWrapping;
 		texture.repeat = 2;
@@ -1061,27 +1104,27 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 		return texture;
 	}
-	
+
 	static generateMatcapTexture (matcap) {
 	var url = new URL(Potree.resourcePath + "/textures/matcap/" + matcap).href;
 	let texture = new THREE.TextureLoader().load( url );
-		texture.magFilter = texture.minFilter = THREE.LinearFilter; 
+		texture.magFilter = texture.minFilter = THREE.LinearFilter;
 		texture.needsUpdate = true;
 		// PotreeConverter_1.6_2018_07_29_windows_x64\PotreeConverter.exe autzen_xyzrgbXYZ_ascii.xyz -f xyzrgbXYZ -a RGB NORMAL -o autzen_xyzrgbXYZ_ascii_a -p index --overwrite
-		// Switch matcap texture on the fly : viewer.scene.pointclouds[0].material.matcap = 'matcap1.jpg'; 
+		// Switch matcap texture on the fly : viewer.scene.pointclouds[0].material.matcap = 'matcap1.jpg';
 		// For non power of 2, use LinearFilter and dont generate mipmaps, For power of 2, use NearestFilter and generate mipmaps : matcap2.jpg 1 2 8 11 12 13
-		return texture; 
+		return texture;
 	}
 
 	static generateMatcapTexture (matcap) {
 	var url = new URL(Potree.resourcePath + "/textures/matcap/" + matcap).href;
 	let texture = new THREE.TextureLoader().load( url );
-		texture.magFilter = texture.minFilter = THREE.LinearFilter; 
+		texture.magFilter = texture.minFilter = THREE.LinearFilter;
 		texture.needsUpdate = true;
 		// PotreeConverter_1.6_2018_07_29_windows_x64\PotreeConverter.exe autzen_xyzrgbXYZ_ascii.xyz -f xyzrgbXYZ -a RGB NORMAL -o autzen_xyzrgbXYZ_ascii_a -p index --overwrite
-		// Switch matcap texture on the fly : viewer.scene.pointclouds[0].material.matcap = 'matcap1.jpg'; 
+		// Switch matcap texture on the fly : viewer.scene.pointclouds[0].material.matcap = 'matcap1.jpg';
 		// For non power of 2, use LinearFilter and dont generate mipmaps, For power of 2, use NearestFilter and generate mipmaps : matcap2.jpg 1 2 8 11 12 13
-		return texture; 
+		return texture;
 	}
 
 	disableEvents(){

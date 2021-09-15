@@ -4,7 +4,7 @@ import { EventDispatcher } from "../EventDispatcher.js";
 import {ClipTask} from "../defines.js"
 import {Utils} from "../utils";
 
-export class ScreenBoxSelectTool extends EventDispatcher{
+export class ScreenDynamicBoxSelectTool extends EventDispatcher{
 
 	constructor(viewer){
 		super();
@@ -120,6 +120,11 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 			svg.find("polyline").each((index, target) => {
 				let startPoint;
 
+				this.lastPoint = {
+					x: e.offsetX,
+					y: e.offsetY,
+				};
+
 				for (let k = 0; k < target.points.numberOfItems; k++) {
 					const endPoint = {
 						x: e.offsetX,
@@ -130,29 +135,69 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 
 					let newPoint = svg[0].createSVGPoint();
 
-					if (k === 0) {
-						startPoint = point;
-						continue;
-					}
+					if (points === 1) {
+						startPoint = pointsArr[0];
 
-					if (k === 1) {
-						newPoint.x = endPoint.x;
-						newPoint.y = startPoint.y;
-					}
+						if (k === 0) {
+							newPoint.x = startPoint.x;
+							newPoint.y = startPoint.y;
+						}
 
-					if (k === 2) {
-						newPoint.x = endPoint.x;
-						newPoint.y = endPoint.y;
-					}
+						if (k === 1) {
+							newPoint.x = startPoint.x;
+							newPoint.y = startPoint.y;
+						}
 
-					if (k === 3) {
-						newPoint.x = startPoint.x;
-						newPoint.y = endPoint.y;
-					}
+						if (k === 2) {
+							newPoint.x = endPoint.x;
+							newPoint.y = endPoint.y;
+						}
 
-					if (k === 4) {
-						newPoint.x = startPoint.x;
-						newPoint.y = startPoint.y;
+						if (k === 3) {
+							newPoint.x = endPoint.x;
+							newPoint.y = endPoint.y;
+						}
+
+						if (k === 4) {
+							newPoint.x = startPoint.x;
+							newPoint.y = startPoint.y;
+						}
+					} else if (points === 2) {
+						const {x: x1, y: y1 } = pointsArr[0];
+						const {x: x2, y: y2 } = pointsArr[1];
+						const {x, y } = endPoint;
+
+						const { x: xx, y: yy, distance } = this.pointDistance(x, y, x1, y1, x2, y2);
+
+						const positiveVector = {
+							x: x - xx,
+							y: y - yy,
+						};
+
+						if (k === 0) {
+							newPoint.x = x1 + positiveVector.x;
+							newPoint.y = y1 + positiveVector.y;
+						}
+
+						if (k === 1) {
+							newPoint.x = x2 + positiveVector.x;
+							newPoint.y = y2 + positiveVector.y;
+						}
+
+						if (k === 2) {
+							newPoint.x = x2 - positiveVector.x;
+							newPoint.y = y2 - positiveVector.y;
+						}
+
+						if (k === 3) {
+							newPoint.x = x1 - positiveVector.x;
+							newPoint.y = y1 - positiveVector.y;
+						}
+
+						if (k === 4) {
+							newPoint.x = x1 + positiveVector.x;
+							newPoint.y = y1 + positiveVector.y;
+						}
 					}
 
 					target.points.replaceItem(newPoint, k);
@@ -172,18 +217,25 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 			if(e.button === THREE.MOUSE.LEFT ){
 /*
 				if (dropped) {
-					this.viewer.inputHandler.startDragging(polyClipVol.markers[polyClipVol.markers.length - 1]);
+					// this.viewer.inputHandler.startDragging(polyClipVol.markers[polyClipVol.markers.length - 1]);
 					return;
 				}
+*/
 
+
+/*
 				this.viewer.renderer.domElement.addEventListener("mousemove", drag , false);
 				this.viewer.renderer.domElement.addEventListener("mouseup", drop , false);
-
 */
+
 				points++;
+				pointsArr.push({
+					x: e.offsetX,
+					y: e.offsetY,
+				});
 
 
-				if (points === 2) {
+				if (points === 3) {
 					this.viewer.renderer.domElement.removeEventListener("mousemove", drag);
 				}
 
@@ -192,6 +244,7 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 				}
 
 				this.viewer.renderer.domElement.addEventListener("mousemove", drag , false);
+
 				polyClipVol.addMarker(e.offsetX, e.offsetY);
 				polyClipVol.addMarker(e.offsetX, e.offsetY);
 				polyClipVol.addMarker(e.offsetX, e.offsetY);
@@ -234,10 +287,14 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 					let polyline = target.points.appendItem(newPoint);
 				});
 
-				this.viewer.inputHandler.startDragging(polyClipVol.markers[polyClipVol.markers.length - 1]);
+				// this.viewer.inputHandler.startDragging(polyClipVol.markers[polyClipVol.markers.length - 1]);
 			} else if (e.button === THREE.MOUSE.RIGHT){
-				if (points === 1) {
-//					points++;
+				if (points === 2) {
+					points++;
+					pointsArr.push({
+						x: e.offsetX,
+						y: e.offsetY,
+					});
 					this.viewer.renderer.domElement.removeEventListener("mousemove", drag);
 				}
 
@@ -326,14 +383,18 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 		cancel.callback = e => {
 			const { forceSave = false, forceDelete = false, forceClip = false, dispatch = false } = e;
 
-			if (points === 1) {
-				this.viewer.renderer.domElement.removeEventListener("mousemove", drag);
-				points++;
-			}
-
 			svg.remove();
 
-			if(!forceDelete && polyClipVol.markers.length > 4 && points > 1) {
+			if (points === 2 && this.lastPoint) {
+				points++;
+				pointsArr.push({
+					x: this.lastPoint.x,
+					y: this.lastPoint.y,
+				});
+				this.viewer.renderer.domElement.removeEventListener("mousemove", drag);
+			}
+
+			if(!forceDelete && polyClipVol.markers.length > 4 && points > 2) {
 				// polyClipVol.removeLastMarker();
 				polyClipVol.initialized = true;
 				this.viewer.scene.polygonMaxCount++;
@@ -342,7 +403,7 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 			}
 
 			this.viewer.removeEventListener("cancel_insertions", cancel.callback);
-			this.viewer.renderer.domElement.removeEventListener("mousedown", insertionCallback);
+			this.viewer.renderer.domElement.removeEventListener("mouseup", insertionCallback);
 
 			if (forceSave) {
 				saveCallback(forceClip, dispatch);
@@ -352,7 +413,7 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 		};
 
 		this.viewer.addEventListener("cancel_insertions", cancel.callback);
-		this.viewer.renderer.domElement.addEventListener("mousedown", insertionCallback , false);
+		this.viewer.renderer.domElement.addEventListener("mouseup", insertionCallback , false);
 
 		this.viewer.inputHandler.enabled = false;
 
@@ -361,4 +422,63 @@ export class ScreenBoxSelectTool extends EventDispatcher{
 
 	update() {
 	}
+
+	    /**
+     * Calculates the point of the intersection between line from location perpendicular to the line [x1, y1], [x2, y2]
+     * and various distances.
+     * @param x
+     * @param y
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @returns {{distance2: number, distance1: number, distance: number, x, y}}
+     */
+    pointDistance(x, y, x1, y1, x2, y2) {
+        const A = x - x1;
+        const B = y - y1;
+        const C = x2 - x1;
+        const D = y2 - y1;
+
+        const dot = A * C + B * D;
+        const lenSq = C * C + D * D;
+        let param = -1;
+
+        // in case of 0 length line
+        if (lenSq !== 0) {
+            param = dot / lenSq;
+        }
+
+        let xx;
+        let yy;
+
+        if (param < 0) {
+            xx = x1;
+            yy = y1;
+        } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+
+        const dx = x - xx;
+        const dy = y - yy;
+
+        const dx1 = x1 - xx;
+        const dy1 = y1 - yy;
+
+        const dx2 = x2 - xx;
+        const dy2 = y2 - yy;
+
+        return {
+            x: xx,
+            y: yy,
+            distance: Math.sqrt(dx * dx + dy * dy),
+            distance1: Math.sqrt(dx1 * dx1 + dy1 * dy1),
+            distance2: Math.sqrt(dx2 * dx2 + dy2 * dy2),
+        };
+    }
+
 };

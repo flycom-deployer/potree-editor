@@ -29,18 +29,22 @@
 	<script src="../libs/jstree/jstree.js"></script>
 	<script src="../build/potree/potree.js"></script>
 	<script src="../libs/plasio/js/laslaz.js"></script>
-	
+
 	<!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
+	<script src="../libs/lodash.min.js"></script>
+	<script src="https://unpkg.com/kdbush@3.0.0/kdbush.min.js"></script>
+	<script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
+
 	<!-- INCLUDE SETTINGS HERE -->
-	
+
 	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
 		<div id="potree_render_area" style="background-image: url('../build/potree/resources/images/background.jpg');"></div>
 		<div id="potree_sidebar_container"> </div>
 		<input id="tiffTest" type="button" value="tiff test" />
 	</div>
 
-	
-	
+
+
 	<script>
 
 
@@ -50,17 +54,17 @@
 			{position: [0.095, 7.636, 10.997], scale: 2},
 		];
 
-	
+
 		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
-		
+
 		viewer.setEDLEnabled(true);
 		viewer.setFOV(60);
 		viewer.setPointBudget(5*1000*1000);
 		viewer.setMinNodeSize(0);
 		viewer.loadSettingsFromURL();
-		
+
 		viewer.setDescription(`Heidentor point cloud courtesy of <a href="http://archpro.lbg.ac.at/" target="_blank">Ludwig Boltzmann Institute - Archeological Prospection and Virtual Archeology</a> (26M points)`);
-		
+
 		viewer.loadGUI(() => {
 			viewer.setLanguage('en');
 			$("#menu_appearance").next().show();
@@ -68,7 +72,7 @@
 			$("#menu_scene").next().show();
 			//viewer.toggleSidebar();
 		});
-		
+
 		Potree.loadPointCloud("http://5.9.65.151/mschuetz/potree/resources/pointclouds/archpro/heidentor/cloud.js", "Heidentor", function(e){
 			viewer.scene.addPointCloud(e.pointcloud);
 			e.pointcloud.position.z = 0;
@@ -79,8 +83,8 @@
 			viewer.scene.view.position.set(13.856734292740617, -9.125174923658731, 14.563928417406354);
 			viewer.scene.view.lookAt(-3.5482630104475366, 2.728596783815762, 6.1406044783018725);
 		});
-		
+
 	</script>
-	
+
   </body>
 </html>

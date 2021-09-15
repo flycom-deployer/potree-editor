@@ -71,7 +71,7 @@ export class Utils {
 
 	static debugLine(parent, start, end, color){
 
-		let material = new THREE.LineBasicMaterial({ color: color }); 
+		let material = new THREE.LineBasicMaterial({ color: color });
 		let geometry = new THREE.Geometry();
 
 		const p1 = new THREE.Vector3(0, 0, 0);
@@ -96,21 +96,21 @@ export class Utils {
 			let u1 = 2 * Math.PI * (i + 1) / n;
 
 			let p0 = new THREE.Vector3(
-				Math.cos(u0), 
-				Math.sin(u0), 
+				Math.cos(u0),
+				Math.sin(u0),
 				0
 			);
 
 			let p1 = new THREE.Vector3(
-				Math.cos(u1), 
-				Math.sin(u1), 
+				Math.cos(u1),
+				Math.sin(u1),
 				0
 			);
 
-			geometry.vertices.push(p0, p1); 
+			geometry.vertices.push(p0, p1);
 		}
 
-		let tl = new THREE.Line( geometry, material ); 
+		let tl = new THREE.Line( geometry, material );
 		tl.position.copy(center);
 		tl.scale.set(radius, radius, radius);
 
@@ -118,7 +118,7 @@ export class Utils {
 	}
 
 	static debugBox(parent, box, transform = new THREE.Matrix4(), color = 0xFFFF00){
-		
+
 		let vertices = [
 			[box.min.x, box.min.y, box.min.z],
 			[box.min.x, box.min.y, box.max.z],
@@ -234,11 +234,11 @@ export class Utils {
 		return worker;
 	};
 
-	static moveTo(scene, endPosition, endTarget){
+	static moveTo(scene, endPosition, endTarget, animationDuration = 500){
 
 		let view = scene.view;
 		let camera = scene.getActiveCamera();
-		let animationDuration = 500;
+		// let animationDuration = 500;
 		let easing = TWEEN.Easing.Quartic.Out;
 
 		{ // animate camera position
@@ -376,9 +376,9 @@ export class Utils {
 	}
 
 	static getMousePointCloudIntersection (mouse, camera, viewer, pointclouds, params = {}) {
-		
+
 		let renderer = viewer.renderer;
-		
+
 		let nmouse = {
 			x: (mouse.x / renderer.domElement.clientWidth) * 2 - 1,
 			y: -(mouse.y / renderer.domElement.clientHeight) * 2 + 1
@@ -401,10 +401,10 @@ export class Utils {
 		let closestDistance = Infinity;
 		let closestIntersection = null;
 		let closestPoint = null;
-		
+
 		for(let pointcloud of pointclouds){
 			let point = pointcloud.pick(viewer, camera, ray, pickParams);
-			
+
 			if(!point){
 				continue;
 			}
@@ -566,8 +566,8 @@ export class Utils {
 		p2.y = (p2.y + 1.0) * 0.5 * screenHeight;
 		return p1.distanceTo(p2);
 	}
-		
-		
+
+
 	static topView(camera, node){
 		camera.position.set(0, 1, 0);
 		camera.rotation.set(-Math.PI / 2, 0, 0);
@@ -592,7 +592,7 @@ export class Utils {
 		camera.zoomTo(node, 1);
 	}
 
-	
+
 	static findClosestGpsTime(target, viewer){
 		const start = performance.now();
 
@@ -614,7 +614,7 @@ export class Utils {
 
 		for(const node of nodes){
 
-			const isOkay = node.geometryNode != null 
+			const isOkay = node.geometryNode != null
 				&& node.geometryNode.geometry != null
 				&& node.sceneNode != null;
 
@@ -836,7 +836,7 @@ export class Utils {
 		const P = [P0, P1, P2, P3];
 
 		const d = (m, n, o, p) => {
-			let result =  
+			let result =
 				  (P[m].x - P[n].x) * (P[o].x - P[p].x)
 				+ (P[m].y - P[n].y) * (P[o].y - P[p].y)
 				+ (P[m].z - P[n].z) * (P[o].z - P[p].z);
@@ -857,7 +857,7 @@ export class Utils {
 
 		const P01 = P1.clone().sub(P0);
 		const P23 = P3.clone().sub(P2);
-		
+
 		const Pa = P0.clone().add(P01.multiplyScalar(mua));
 		const Pb = P2.clone().add(P23.multiplyScalar(mub));
 
@@ -911,13 +911,13 @@ export class Utils {
 			llP2 = [llP1[0], llP1[1] + polarRadius];
 
 			const northVec = transform.inverse(llP2);
-			
+
 			return new THREE.Vector3(...northVec, p1.z).sub(p1);
 		}else{
 			// if there is no projection, assume [0, 1, 0] as north direction
 
 			const vec = new THREE.Vector3(0, 1, 0).multiplyScalar(distance);
-			
+
 			return vec;
 		}
 	}
@@ -994,21 +994,21 @@ export class Utils {
 		//		<stop offset="100%"  stop-color="rgb(157, 0, 65)" />
 		//		</linearGradient>
 		//	</defs>
-		//	
+		//
 		//	<rect width="100%" height="100%" fill="url('#myGradient')" stroke="black" stroke-width="0.1em"/>
 		//</svg>
 
 
 		const gradientId = `${Math.random()}_${Date.now()}`;
-		
+
 		const svgn = "http://www.w3.org/2000/svg";
 		const svg = document.createElementNS(svgn, "svg");
 		svg.setAttributeNS(null, "width", "2em");
 		svg.setAttributeNS(null, "height", "3em");
-		
+
 		{ // <defs>
 			const defs = document.createElementNS(svgn, "defs");
-			
+
 			const linearGradient = document.createElementNS(svgn, "linearGradient");
 			linearGradient.setAttributeNS(null, "id", gradientId);
 			linearGradient.setAttributeNS(null, "gradientTransform", "rotate(90)");
@@ -1037,12 +1037,12 @@ export class Utils {
 		rect.setAttributeNS(null, "stroke-width", `0.1em`);
 
 		svg.appendChild(rect);
-		
+
 		return svg;
 	}
 
 	static async waitAny(promises){
-		
+
 		return new Promise( (resolve) => {
 
 			promises.map( promise => {

@@ -138,10 +138,13 @@ export class LasLazBatcher {
 			const pointSourceIDs = new Uint16Array(e.data.pointSourceID);
 			const indices = new Uint8Array(e.data.indices);
 
+			const bufferAttribute = new THREE.BufferAttribute(classifications, 1);
+
 			geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 			geometry.addAttribute('color', new THREE.BufferAttribute(colors, 4, true));
 			geometry.addAttribute('intensity', new THREE.BufferAttribute(intensities, 1));
-			geometry.addAttribute('classification', new THREE.BufferAttribute(classifications, 1));
+			// geometry.addAttribute('classification', new THREE.BufferAttribute(classifications, 1));
+			geometry.addAttribute('classification', bufferAttribute);
 			geometry.addAttribute('return number', new THREE.BufferAttribute(returnNumbers, 1));
 			geometry.addAttribute('number of returns', new THREE.BufferAttribute(numberOfReturns, 1));
 			geometry.addAttribute('source id', new THREE.BufferAttribute(pointSourceIDs, 1));
@@ -184,7 +187,9 @@ export class LasLazBatcher {
 			offset: lasBuffer.offset,
 			mins: lasBuffer.mins,
 			maxs: lasBuffer.maxs,
+			commands: window.viewer.scene.pointWorkerCommands,
 		};
+
 		worker.postMessage(message, [message.buffer]);
 	}
 }

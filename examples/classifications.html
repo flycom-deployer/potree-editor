@@ -30,10 +30,10 @@
 	<script src="../libs/plasio/js/laslaz.js"></script>
 
 	<script src="../libs/three.js/extra/lines.js"></script>
-	
+
 	<!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
 	<!-- INCLUDE SETTINGS HERE -->
-	
+
 	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
 		<div id="potree_render_area" style="background-image: url('../build/potree/resources/images/background.jpg');">
 
@@ -48,40 +48,46 @@
 		</div>
 		<div id="potree_sidebar_container"> </div>
 	</div>
-	
+
 	<script>
-	
+
 		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
 
 		viewer.setDescription(`
 		Classification schemes can be changed at runtime via viewer.setClassifications(...). <br>
 		<br>
-		Point cloud courtesy of <a target='_blank' href='https://www.pge.com/'>PG&E</a>, 
+		Point cloud courtesy of <a target='_blank' href='https://www.pge.com/'>PG&E</a>,
 		hosted by <a target='_blank' href='http://opentopo.sdsc.edu/lidarDataset?opentopoID=OTLAS.032013.26910.2'>Open Topography</a>`);
-		
+
 		viewer.setEDLEnabled(true);
 		viewer.setFOV(60);
 		viewer.setPointBudget(2 * 1000 * 1000);
-		
+
 		viewer.loadGUI(() => {
 			$("#menu_filters").next().show();
 			viewer.toggleSidebar();
 		});
-		
+
 		// Sigeom
 		//Potree.loadPointCloud("../pointclouds/morro_bay_converted/cloud.js", "CA13", function(e){
-		Potree.loadPointCloud("http://5.9.65.151/mschuetz/potree/resources/pointclouds/opentopography/CA13_1.4/cloud.js", "CA13", function(e){
+		// Potree.loadPointCloud("http://5.9.65.151/mschuetz/potree/resources/pointclouds/opentopography/CA13_1.4/cloud.js", "CA13", function(e){
+		Potree.loadPointCloud("http://api.flai.ai/pointclouds/c2712787-f477-499d-8240-ba605f86f6e2/potree/cloud.js", "CA13", function(e){
+		// Potree.loadPointCloud("http://api.flai.ai/pointclouds/test/meta-las/cloud.js", "CA13", function(e){
 			viewer.scene.addPointCloud(e.pointcloud);
-			e.pointcloud.position.z = 0;
+			// e.pointcloud.position.z = 0;
 			let material = e.pointcloud.material;
 			material.size = 3;
 			material.pointSizeType = Potree.PointSizeType.FIXED;
 			material.activeAttributeName = "classification";
-			
+
+			viewer.fitToScreen();
+
+/*
 			viewer.scene.view.position.set(694274.518, 3916261.987, 348.732);
 			viewer.scene.view.lookAt(694683.097, 3916386.916, 30.879);
+*/
 		});
-		
+
 	</script>
 
 	<script>
@@ -113,7 +119,7 @@
 		}
 
 	</script>
-	
-	
+
+
   </body>
 </html>

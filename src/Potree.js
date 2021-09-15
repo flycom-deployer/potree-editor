@@ -53,6 +53,7 @@ export * from "./utils/PolygonClipVolume.js";
 export * from "./utils/Profile.js";
 export * from "./utils/ProfileTool.js";
 export * from "./utils/ScreenBoxSelectTool.js";
+export * from "./utils/ScreenDynamicBoxSelectTool.js";
 export * from "./utils/SpotLightHelper.js";
 export * from "./utils/TransformationTool.js";
 export * from "./utils/Volume.js";
