@@ -1,6 +1,5 @@
 export default class Classificator {
   constructor(pointCloud, activeClassifications, selections, box) {
-    console.log('classificator constructor');
     this.pointCloud = pointCloud;
     this.activeClassifications = activeClassifications;
     this.selections = selections;

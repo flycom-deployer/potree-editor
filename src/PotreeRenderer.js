@@ -3,6 +3,7 @@ import {PointCloudTree} from "./PointCloudTree.js";
 import {PointCloudOctreeNode} from "./PointCloudOctree.js";
 import {PointCloudArena4DNode} from "./arena4d/PointCloudArena4D.js";
 import {PointSizeType, ClipTask, ElevationGradientRepeat} from "./defines.js";
+
 // Copied from three.js: WebGLRenderer.js
 function paramThreeToGL(_gl, p) {
 
@@ -784,7 +785,6 @@ export class Renderer {
 					for(let i = 0; i < material.clipPolygons.length; i++){
 						let clipPolygon = material.clipPolygons[i];
 
-						// TODO
 						flattenedColors.set(clipPolygon.color, 3 * i);
 
 						for(let j = 0; j < clipPolygon.markers.length; j++){
@@ -803,7 +803,6 @@ export class Renderer {
 					const lClipPolygons = shader.uniformLocations["uClipPolygonVertices[0]"];
 					gl.uniform3fv(lClipPolygons, flattenedVertices);
 
-					// TODO set clip color uniform
 					const uClipPolygonVColors = shader.uniformLocations["uClipPolygonVColors[0]"];
 					gl.uniform3fv(uClipPolygonVColors, flattenedColors);
 				}
@@ -1083,7 +1082,7 @@ export class Renderer {
 				let numClipBoxes = (material.clipBoxes && material.clipBoxes.length) ? material.clipBoxes.length : 0;
 				let numClipSpheres = (params.clipSpheres && params.clipSpheres.length) ? params.clipSpheres.length : 0;
 				let numClipPolygons = (material.clipPolygons && material.clipPolygons.length) ? material.clipPolygons.length : 0;
-				// TODO
+
 				let activeCount = material.uniforms.activeClassifications.value.length;
 				let selectionCount = material.uniforms.selections.value.length;
 
@@ -1241,7 +1240,6 @@ export class Renderer {
 
 			shader.setUniform1i("clipMethod", material.clipMethod);
 
-			// TODO
 			const uActiveClassifications = shader.uniformLocations["activeClassifications[0]"];
 			gl.uniform1iv(uActiveClassifications, material.uniforms.activeClassifications.value);
 
@@ -1259,8 +1257,6 @@ export class Renderer {
 				const lClipBoxes = shader.uniformLocations["clipBoxes[0]"];
 				gl.uniformMatrix4fv(lClipBoxes, false, material.uniforms.clipBoxes.value);
 
-				// TODO set clip color uniform
-				// console.log(1, material.uniforms.clipBoxesColors.value, material.uniforms.clipBoxes.value);
 				const lClipBoxesColors = shader.uniformLocations["clipBoxesColors[0]"];
 				gl.uniform3fv(lClipBoxesColors, material.uniforms.clipBoxesColors.value);
 			}

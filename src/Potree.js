@@ -1,4 +1,3 @@
-
 export * from "./Actions.js";
 export * from "./AnimationPath.js";
 export * from "./Annotation.js";
@@ -290,9 +289,6 @@ export function loadPointCloud(path, name, callback){
 
 			elGroup.empty();
 			elGroup.append(elFieldset);
-
-
-
 		}
 	});
 })(jQuery);

@@ -293,17 +293,12 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 
 		this.uniforms.clipBoxes.value = new Float32Array(this.clipBoxes.length * 16);
-
-		// TODO set color to material
 		this.uniforms.clipBoxesColors.value = new Float32Array(this.clipBoxes.length * 3);
-		//console.log(this.clipBoxes.length);
 
-		// TODO set active classifications
 		const visibleClassifications = Object.entries(window.viewer.classifications)
 			.filter(([, value]) => value.visible)
 			.map(([key, ]) => key);
 
-		// TODO
 		const activeClassifications = [...(window.viewer.activeClassifications || visibleClassifications)]
 			.filter(classification => visibleClassifications.includes(classification));
 
@@ -316,7 +311,6 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			}
 		}
 
-		// TODO
 		if (window.viewer.scene.selections.length) {
 			this.uniforms.selections.value = new Uint8Array(window.viewer.scene.selections.length * 2);
 
@@ -328,14 +322,10 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 		}
 
 
-		// console.log(this.clipBoxes.length);
 		for (let i = 0; i < this.clipBoxes.length; i++) {
 			let box = clipBoxes[i];
 
 			this.uniforms.clipBoxes.value.set(box.inverse.elements, 16 * i);
-
-			// TODO set color to material
-			// console.log('color', box.box.color);
 			this.uniforms.clipBoxesColors.value.set(box.box.color || '', 3 * i);
 		}
 
