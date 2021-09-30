@@ -45,6 +45,9 @@ let workers = {
 	],
 	"EptZstandardDecoderWorker": [
 		"src/workers/EptZstandardDecoderWorker.js"
+	],
+	"ClassificatorWorker": [
+		"src/workers/ClassificatorWorker.js"
 	]
 };
 
@@ -154,7 +157,7 @@ gulp.task("shaders", async function(){
 	fs.writeFileSync(targetPath, content, {flag: "w"});
 });
 
-gulp.task('build', 
+gulp.task('build',
 	gulp.series(
 		gulp.parallel("workers", "lazylibs", "shaders", "icons_viewer", "examples_page"),
 		async function(done){

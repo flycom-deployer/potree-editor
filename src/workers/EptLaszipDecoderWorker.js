@@ -1,3 +1,5 @@
+importScripts('./ClassificatorWorker.js')
+
 function readUsingDataView(event) {
 	performance.mark("laslaz-start");
 
@@ -7,11 +9,12 @@ function readUsingDataView(event) {
 	let pointFormat = event.data.pointFormatID;
 
 	// gps time byte offsets from LAS specification
-	let gpsOffsets = [null, 20, null, 20, 20, 20, 22, 22, 22, 22, 22] 
+	let gpsOffsets = [null, 20, null, 20, 20, 20, 22, 22, 22, 22, 22]
 	let gpsOffset = gpsOffsets[pointFormat];
 
 	let scale = event.data.scale;
 	let offset = event.data.offset;
+	const { commands } = event.data;
 
 	let sourceUint8 = new Uint8Array(buffer);
 	let sourceView = new DataView(buffer);
@@ -134,6 +137,21 @@ function readUsingDataView(event) {
 		}
 	}
 
+	if (commands) {
+		for (let i = 0; i < numPoints; i++) {
+			const x = positions[3 * i + 0];
+			const y = positions[3 * i + 1];
+			const z = positions[3 * i + 2];
+
+			// TODO select intersected with box nodes
+			const newClassification = classifyPoint(x + event.data.mins[0], y + event.data.mins[1], z + event.data.mins[2], commands, classifications[i]);
+
+			if (newClassification !== classifications[i]) {
+				classifications[i] = newClassification || classifications[i];
+			}
+		}
+	}
+
 	let min = Infinity
 	let max = -Infinity
 
@@ -193,8 +211,6 @@ function readUsingDataView(event) {
 
 	postMessage(message, transferables);
 };
-
-
 
 onmessage = readUsingDataView;
 

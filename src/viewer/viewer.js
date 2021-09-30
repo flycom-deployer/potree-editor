@@ -491,12 +491,14 @@ export class Viewer extends EventDispatcher{
 	setClipTask(value){
 		if(this.clipTask !== value){
 
+/*
 			if (this.clipTask === 1) {
                 this.oldPosition = new THREE.Vector3(0, 0, 0).applyMatrix4(this.scene.getActiveCamera().matrixWorld);
                 this.oldTarget = this.scene.view.getPivot();
 			} else if (this.clipTask === 2) {
 				Utils.moveTo(this.scene, this.oldPosition, this.oldTarget, 0);
 			}
+*/
 
 			this.clipTask = value;
 

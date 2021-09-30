@@ -43,7 +43,7 @@ export class BinaryLoader{
 				}
 			}
 		};
-		
+
 		try {
 			xhr.send(null);
 		} catch (e) {
@@ -123,7 +123,7 @@ export class BinaryLoader{
 			tightBoundingBox.min.set(0, 0, 0);
 
 			let numPoints = e.data.buffer.byteLength / pointAttributes.byteSize;
-			
+
 			node.numPoints = numPoints;
 			node.geometry = geometry;
 			node.mean = new THREE.Vector3(...data.mean);
@@ -143,11 +143,12 @@ export class BinaryLoader{
 			scale: this.scale,
 			spacing: node.spacing,
 			hasChildren: node.hasChildren,
-			name: node.name
+			name: node.name,
+			commands: window.viewer.scene.pointWorkerCommands,
 		};
 		worker.postMessage(message, [message.buffer]);
 	};
 
-	
+
 }
 

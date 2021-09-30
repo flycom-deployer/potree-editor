@@ -86,13 +86,13 @@ export class EptLaszipLoader {
 
 		}catch(err){
 			console.error('Error reading LAZ:', err);
-			
+
 			if (lf.isOpen) {
 				await lf.close();
 
 				lf.isOpen = false;
 			}
-			
+
 			throw err;
 		}
 	}
@@ -165,7 +165,8 @@ export class EptLazBatcher {
 			scale: las.scale,
 			offset: las.offset,
 			mins: las.mins,
-			maxs: las.maxs
+			maxs: las.maxs,
+			commands: window.viewer.scene.pointWorkerCommands,
 		};
 
 		worker.postMessage(message, [message.buffer]);

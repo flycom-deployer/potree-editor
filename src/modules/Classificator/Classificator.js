@@ -26,7 +26,9 @@ export default class Classificator {
   }
 
   classifyPoints(onlyBox = false) {
-    const generator = this.getIntersectingChildren(this.pointCloud.pcoGeometry.nodes.r);
+    // const generator = this.getIntersectingChildren(this.pointCloud.pcoGeometry.nodes.r);
+    const generator = this.getIntersectingChildren(this.pointCloud.pcoGeometry.root);
+
     let iterator = generator.next();
 
     this.minPoint = undefined;
