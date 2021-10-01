@@ -808,7 +808,6 @@ export class Renderer {
 				}
 			}
 
-
 			//shader.setUniformMatrix4("modelMatrix", world);
 			//shader.setUniformMatrix4("modelViewMatrix", worldView);
 			shader.setUniform1f("uLevel", level);
@@ -1095,8 +1094,6 @@ export class Renderer {
 					`#define active_count ${activeCount}`,
 					`#define selection_count ${selectionCount}`,
 				];
-
-
 
 				if(octree.pcoGeometry.root.isLoaded()){
 					let attributes = octree.pcoGeometry.root.geometry.attributes;

@@ -291,7 +291,6 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			this.updateShaderSource();
 		}
 
-
 		this.uniforms.clipBoxes.value = new Float32Array(this.clipBoxes.length * 16);
 		this.uniforms.clipBoxesColors.value = new Float32Array(this.clipBoxes.length * 3);
 
